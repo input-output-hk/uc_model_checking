@@ -42,7 +42,6 @@ module f_atms_env{
          {
             post_state : sys.state,
             effects : Set(
-                ATMS_LogMessage(msg_log),
                 ATMS_UpdateInput(Set())
             )
          })

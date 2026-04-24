@@ -41,11 +41,11 @@ module f_hash_properties{
         all {
             nondet from = Parties.oneOf() 
             nondet sid = sids.oneOf()
-            nondet x = ALL_HASHES.oneOf()
+            nondet x = 1.to(UNIVERSE_SIZE).oneOf()
 
             val cfg = {party: from, sid: sid, nonce: f_hash_s.nonce}
             all {
-                f_hash_s' = {...f_hash_s, 
+                f_hash_s' = {...f_hash_s,
                     input: Set(HashRequest({cfg: cfg, x: List(Normal({tx: x, b: true})) })),
                     nonce: f_hash_s.nonce + 1
                 }
@@ -120,6 +120,11 @@ module f_hash_properties{
             }
         })
     }
+
+    // MUST FAIL -- fails when at least one hash has been computed in some session
+    val HashLiveness = sids.forall(sid =>
+        f_hash_s.state.get(sid).hash_map.keys().size() == 0
+    )
 
     val AllProps = all {
         HASH_Correctness,

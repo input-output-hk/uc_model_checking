@@ -70,35 +70,37 @@ val BroadcastToAll = sids.forall(sid => {
 
 // ========== PROPERTIES ==========
 
-// ∆-delayed Liveness: if P diffuses a message m in some round t, and Q attempts to fetch in some 
-// round t' ≥ t + ∆ then Q receives m in some round t'' ∈ [t, t'].  
+// ∆-delayed Liveness: if P diffuses a message m in some round t, and Q attempts to fetch in some
+// round t' ≥ t + ∆ then Q receives m in some round t'' ∈ [t, t'].
 val DDL = {
     f_dif_s.log.forall(msg1 =>
         match msg1.msg {
-            | DIF_DiffuseRequest(p) => { 
-                val dif_fetch_response_exists = f_dif_s.log.exists(msg3 => {
+            | DIF_DiffuseRequest(p) => {
+                f_dif_s.log.forall(msg3 =>
                     match msg3.msg {
                         | DIF_FetchResponse(d) => {
-                            p.cfg.sid == d.cfg.sid and d.t_prim >= msg1.time + delta_param
-                        }
-                        | _ => false
-                    }
-                })
-
-                dif_fetch_response_exists implies {
-                    f_dif_s.log.exists(msg3 => {
-                        match msg3.msg {
-                            | DIF_FetchResponse(d) => {
-                                p.m.in(d.data) and p.cfg.sid == d.cfg.sid
+                            val is_late_fetch = p.cfg.sid == d.cfg.sid and d.t_prim >= msg1.time + delta_param
+                            is_late_fetch implies {
+                                p.m.in(d.data) or
+                                f_dif_s.log.exists(msg4 =>
+                                    match msg4.msg {
+                                        | DIF_FetchResponse(d2) =>
+                                            d2.cfg.party == d.cfg.party and
+                                            d2.cfg.sid == d.cfg.sid and
+                                            msg4.idx < msg3.idx and
+                                            p.m.in(d2.data)
+                                        | _ => false
+                                    }
+                                )
                             }
-                            | _ => false
                         }
-                    })
-                }
+                        | _ => true
+                    }
+                )
             }
             | _ => true
         }
-    )    
+    )
 }
 
 // Authentication: If a nonempty set of messages was delivered then they were indeed diffused or injected in the past.
@@ -191,6 +193,32 @@ temporal NeverStuck = {
     })
   })
 }
+
+// ========== LIVENESS (must-fail invariants) ==========
+
+// MUST FAIL -- fails when at least one diffuse response appears in the log
+val DiffuseLiveness = f_dif_s.log.forall(e => match e.msg {
+    | DIF_DiffuseResponse(_) => false
+    | _ => true
+})
+
+// MUST FAIL -- fails when at least one non-empty fetch response appears in the log
+val FetchLiveness = f_dif_s.log.forall(e => match e.msg {
+    | DIF_FetchResponse(r) => r.data.size() == 0
+    | _ => true
+})
+
+// MUST FAIL -- fails when at least one inject response appears in the log
+val InjectLiveness = f_dif_s.log.forall(e => match e.msg {
+    | DIF_InjectResponse(_) => false
+    | _ => true
+})
+
+// MUST FAIL -- fails when at least one OK response appears in the log
+val OKLiveness = f_dif_s.log.forall(e => match e.msg {
+    | DIF_OKResponse(_) => false
+    | _ => true
+})
 
 // ========== COMBINED PROPERTIES ==========
 

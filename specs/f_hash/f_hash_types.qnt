@@ -54,6 +54,9 @@ module f_hash_types {
     }
 
 
+    pure def hash_access_check(cfg: MsgConfig, params: HASH_SystemParams): bool =
+        cfg.party.in(params.P) and cfg.sid.in(params.SIDs)
+
     pure def hash_id_trans(f_hash: HASH_System) : HASH_Transition = {
         post_state : f_hash.state,
         effects : Set(),

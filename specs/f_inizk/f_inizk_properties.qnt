@@ -143,6 +143,20 @@ module f_inizk_properties{
         })
     })
 
+    // ========== LIVENESS (must-fail invariants) ==========
+
+    // MUST FAIL -- fails when at least one successful prove response appears in the log
+    val ProveLiveness = f_nizk_s.log.forall(e => match e.msg {
+        | NIZK_ProveResponse(r) => r.pi == None
+        | _ => true
+    })
+
+    // MUST FAIL -- fails when at least one successful verify response appears in the log
+    val VerifyLiveness = f_nizk_s.log.forall(e => match e.msg {
+        | NIZK_VerifyResponse(r) => r.b == false
+        | _ => true
+    })
+
     // ========== COMBINED PROPERTIES ==========
     
     val AllSoundnessProps = and {

@@ -2,10 +2,11 @@ module f_inizk{
 
     import common.* from "../common"
     import basicSpells.* from "../../spells/basicSpells"
-    import rareSpells.* from "../../spells/rareSpells"    
+    import rareSpells.* from "../../spells/rareSpells"
     import f_inizk_types.* from "./f_inizk_types"
     import f_hash_types.* from "../f_hash/f_hash_types"
     import f_hash.* from "../f_hash/f_hash"
+    import g_ledger_types.* from "../g_ledger/g_ledger_types"
 
     var f_nizk_s : NIZK_System
 
@@ -278,8 +279,8 @@ module f_inizk{
     action nizk_verify_2_act : bool = all {
         f_nizk_s.input.filterMap(m => match m { | NIZK_SIMControl => Some(m) | _ => None }).size() > 0,
         f_nizk_s.handles.filterMap(h => match h { | NIZK_SIMVerifyHold(q) => Some(q) | _ => None }).size() > 0,
-        //nondet sim_w = Set(List()).oneOf() // TODO: change that to get more adv behaviors
-        val sim_w = List()
+        val all_witnesses = 1.to((UNIVERSE_SIZE + 1) / 2).map(x => List(Normal({b: true, tx: x})))
+        nondet sim_w = all_witnesses.union(Set(List())).oneOf()
         nondet t = nizk_verify_2(f_nizk_s, sim_w).oneOf()
         f_nizk_s' =  nizk_process_transitions(f_nizk_s, t)
     }      

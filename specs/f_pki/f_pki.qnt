@@ -10,18 +10,22 @@ module f_pki {
 
     val SIM_ALL_CERTS = 1.to(UNIVERSE_SIZE)
 
-    pure def pki_register_1(pki: PKI_System) : Set[PKI_Transition] = {      
+    pure def pki_register_1(pki: PKI_System) : Set[PKI_Transition] = {
         pki.input.pki_get_register_request_messages().map(p => {
-            {
-                post_state: pki.state,
-                effects: Set(
-                    PKI_LogMessage(PKI_RegisterRequest(p)),
-                    PKI_AppendHandle(PKI_SIMRegisterRequestHold(p)),
-                    PKI_UpdateInput(Set(PKI_SIMControl))
+            if (pki_access_check(p.cfg, pki.params)) {
+                {
+                    post_state: pki.state,
+                    effects: Set(
+                        PKI_LogMessage(PKI_RegisterRequest(p)),
+                        PKI_AppendHandle(PKI_SIMRegisterRequestHold(p)),
+                        PKI_UpdateInput(Set(PKI_SIMControl))
                     )
-             }            
+                }
+            } else {
+                pki_skip_trans(pki)
+            }
         })
-    }    
+    }
 
     // TODO: rewrite with non-det if experiencing performance issues
     pure def pki_register_2(pki: PKI_System) : Set[PKI_Transition] = {      
@@ -71,18 +75,22 @@ module f_pki {
     }
 
 
-    pure def pki_get_all_1(pki: PKI_System) : Set[PKI_Transition] = {      
+    pure def pki_get_all_1(pki: PKI_System) : Set[PKI_Transition] = {
         pki.input.pki_get_get_all_request_messages().map(p => {
-            {
-                post_state: pki.state,
-                effects: Set(
-                    PKI_LogMessage(PKI_GetAllRequest(p)),
-                    PKI_AppendHandle(PKI_SIMGetAllRequestWait(p)),
-                    PKI_UpdateInput(Set(PKI_SIMControl))
+            if (pki_access_check(p.cfg, pki.params)) {
+                {
+                    post_state: pki.state,
+                    effects: Set(
+                        PKI_LogMessage(PKI_GetAllRequest(p)),
+                        PKI_AppendHandle(PKI_SIMGetAllRequestWait(p)),
+                        PKI_UpdateInput(Set(PKI_SIMControl))
                     )
-             }            
+                }
+            } else {
+                pki_skip_trans(pki)
+            }
         })
-    }        
+    }
 
     pure def pki_get_all_2(pki: PKI_System) : Set[PKI_Transition] = {      
         pki.input.pki_get_sim_control_messages().map(m => {
@@ -102,18 +110,22 @@ module f_pki {
     }    
 
 
-    pure def pki_retrieve_1(pki: PKI_System) : Set[PKI_Transition] = {      
+    pure def pki_retrieve_1(pki: PKI_System) : Set[PKI_Transition] = {
         pki.input.pki_get_retrieve_request_messages().map(p => {
-            {
-                post_state: pki.state,
-                effects: Set(
-                    PKI_LogMessage(PKI_RetrieveRequest(p)),
-                    PKI_AppendHandle(PKI_SIMRetrieveRequestHold(p)),
-                    PKI_UpdateInput(Set(PKI_SIMControl))
+            if (pki_access_check(p.cfg, pki.params)) {
+                {
+                    post_state: pki.state,
+                    effects: Set(
+                        PKI_LogMessage(PKI_RetrieveRequest(p)),
+                        PKI_AppendHandle(PKI_SIMRetrieveRequestHold(p)),
+                        PKI_UpdateInput(Set(PKI_SIMControl))
                     )
-             }            
+                }
+            } else {
+                pki_skip_trans(pki)
+            }
         })
-    }        
+    }
 
     pure def pki_retrieve_2(pki: PKI_System) : Set[PKI_Transition] = {      
         pki.input.pki_get_sim_control_messages().map(m => {
@@ -157,25 +169,24 @@ module f_pki {
 
     pure def pki_cert_verify_1(pki: PKI_System) : Set[PKI_Transition] = {
         pki.input.pki_get_cert_verify_request_messages().map(p => {
-
-            val sid = p.cfg.sid
-            val party = p.cfg.party
-            val sid_state = pki.state.get(sid)
-
-            val result = sid_state.Ver.exists(x => x.party == p.Q and x.vk == p.vk and x.cert == p.cert)            
-
-            {
-                post_state: pki.state,
-                effects: Set(
-                    PKI_LogMessage(PKI_CertVerifyRequest(p)),                   
-                    PKI_UpdateInput(Set(PKI_CertVerifyResponse({
-                        cfg: p.cfg,
-                        Q: p.Q,
-                        vk: p.vk,
-                        cert: p.cert,
-                        result: result
-                    })))
-                )
+            if (pki_access_check(p.cfg, pki.params)) {
+                val sid_state = pki.state.get(p.cfg.sid)
+                val result = sid_state.Ver.exists(x => x.party == p.Q and x.vk == p.vk and x.cert == p.cert)
+                {
+                    post_state: pki.state,
+                    effects: Set(
+                        PKI_LogMessage(PKI_CertVerifyRequest(p)),
+                        PKI_UpdateInput(Set(PKI_CertVerifyResponse({
+                            cfg: p.cfg,
+                            Q: p.Q,
+                            vk: p.vk,
+                            cert: p.cert,
+                            result: result
+                        })))
+                    )
+                }
+            } else {
+                pki_skip_trans(pki)
             }
         })
     }

@@ -15,7 +15,7 @@ module f_inizk_env{
    val sids = 1.to(SID_SIZE)
 
 
-  val ALL_STATEMENTS = 1.to(UNIVERSE_SIZE).map(x => { x : Normal({b: true, tx: x}), h : x }) 
+  val ALL_STATEMENTS = 1.to(UNIVERSE_SIZE).map(x => { x : Normal({b: true, tx: x}), h : 49 + x })
   val ALL_WITNESSES = 1.to((UNIVERSE_SIZE + 1) / 2).map(x => { List(Normal({b: true, tx: x})) })
 
     action step : bool = {
@@ -40,11 +40,10 @@ module f_inizk_env{
          {
             post_state : sys.state,
             effects : Set(
-                NIZK_LogMessage(msg_log),
                 NIZK_UpdateInput(Set())
             )
          })
-    }    
+    }
 
 
 
@@ -110,6 +109,7 @@ module f_inizk_env{
         f_nizk_s.handles.size() > 0,
         f_nizk_s' = {...f_nizk_s,
            input: Set(NIZK_SIMControl),
+           nonce: f_nizk_s.nonce + 1
         }
     }
 

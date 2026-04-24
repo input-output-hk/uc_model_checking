@@ -38,16 +38,17 @@ module f_dif_env{
 
     action env_fac_send_all_reqs : bool = all {
         nondet from = Parties.oneOf()
+        nondet corrupted = Corrupted.oneOf()
         nondet top = Parties.oneOf()
         nondet sid = sids.oneOf()
 
         any {
             env_dif_send_reqs(from, top, sid),
-            env_dif_inject_reqs(from, top, sid),
+            env_dif_inject_reqs(corrupted, top, sid),
             env_dif_fetch_reqs(from, sid),
             env_ok_reqs(from, sid),
             env_dif_sim_reqs,
-            env_gc_sim_reqs, 
+            env_gc_sim_reqs,
         }
     }
 
@@ -58,7 +59,7 @@ module f_dif_env{
         g_clock_s.input.size() == 0 and f_dif_s.input.size() == 0,
         
         // Non-deterministically choose a party and SID
-        nondet data = Set(42,43,44,45).oneOf()
+        nondet data = 1.to(UNIVERSE_SIZE).oneOf()
         val cfg = {party: from, sid: sid, nonce: f_dif_s.nonce}
         f_dif_s' = {...f_dif_s, 
             input: Set(DIF_DiffuseRequest({cfg: cfg, m: {party: from, avk: top, sig: data}})),
@@ -74,7 +75,7 @@ module f_dif_env{
         g_clock_s.input.size() == 0 and f_dif_s.input.size() == 0,
         
         // Non-deterministically choose a party and SID
-        nondet data = Set(42,43,44,45).oneOf()
+        nondet data = 1.to(UNIVERSE_SIZE).oneOf()
         val cfg = {party: from, sid: sid, nonce: f_dif_s.nonce}
         f_dif_s' = {...f_dif_s, 
             input: Set(DIF_InjectRequest({cfg: cfg, Q: top, m: {party: from, avk: top, sig: data}})),

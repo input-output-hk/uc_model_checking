@@ -186,39 +186,52 @@ module p_bridge_br{
                 brd_br_5_case4(sys, p, bstP)
             }else if(r % R == delta + 2){
                 brd_br_5_case5(sys, p, bstP)
-            }else if(delta + 3 < r % R){
-                Map().get(1)
-                //brd_br_5_case6(sys, p, bstP)
             }else{
-                Map().get(1) // should not happen
+                // Inactive phase (r % R in [delta+3, R-1]): preserve state, no transaction
+                brd_br_5_case6(sys, p, bstP)
             }
         }).flatten()
     }    
 
     pure def brd_br_5_case1(sys : BRD_CSystem, p: {cfg: MsgConfig, args: BRD_BR_Args}, bst: BRD_BST_Entry) : Set[BRD_CTransition] = {
-        val rot = bst.rot.unwrap() // can it be None here?
-        val code = rot
-        val cID = rot
-        val btx2 = Install({cID: cID, code: code})
+        if (bst.rot == None) {
+            // RoT not yet completed; skip this round without installing
+            Set({...sys.brd_id_ctrans(),
+                brd: {
+                    post_state: sys.brd.state,
+                    effects: Set(
+                        BRD_UpdateInput(Set(BridgeBRAlgorithmResponse({
+                            cfg: p.cfg,
+                            args: p.args,
+                            resp: {btx2: None, m: None, bst: Some(bst)}
+                        })))
+                    )
+                }
+            })
+        } else {
+            val rot = bst.rot.unwrap()
+            val code = rot
+            val cID = rot
+            val btx2 = Install({cID: cID, code: code})
 
-        val brd_trans = {
-            post_state: sys.brd.state,
-            effects: Set(
-                BRD_UpdateInput(Set(BridgeBRAlgorithmResponse({
-                    cfg: p.cfg, 
-                    args: p.args, 
-                    resp: ({
-                        //btx1: None,
-                        btx2: Some(btx2),
-                        m: None,
-                        bst: Some({...bst, cID: Some(cID)})
-                    })})))
-            )
+            val brd_trans = {
+                post_state: sys.brd.state,
+                effects: Set(
+                    BRD_UpdateInput(Set(BridgeBRAlgorithmResponse({
+                        cfg: p.cfg,
+                        args: p.args,
+                        resp: ({
+                            btx2: Some(btx2),
+                            m: None,
+                            bst: Some({...bst, cID: Some(cID)})
+                        })})))
+                )
+            }
+
+            Set({...sys.brd_id_ctrans(),
+                brd: brd_trans,
+            })
         }
-
-        Set({...sys.brd_id_ctrans(),
-            brd: brd_trans,
-        })
     }
 
     pure def brd_br_5_case2(sys : BRD_CSystem, p: {cfg: MsgConfig, args: BRD_BR_Args}, bst: BRD_BST_Entry) : Set[BRD_CTransition] = {
@@ -266,65 +279,74 @@ module p_bridge_br{
     }        
 
     pure def brd_br_5_case5(sys : BRD_CSystem, p: {cfg: MsgConfig, args: BRD_BR_Args}, bst: BRD_BST_Entry) : Set[BRD_CTransition] = {
-        val bvks = bst.aux.unwrap().bvks
-        val com = bst.aux.unwrap().com
-        val cID = bst.cID.unwrap() 
-        val msg = {h: bst.h.unwrap(), avk: bst.avk_prim.unwrap()}
+        if (bst.aux == None or bst.h == None or bst.avk_prim == None or bst.cID == None) {
+            // Prerequisite state not yet established (case3 must run first); skip
+            Set({...sys.brd_id_ctrans(),
+                brd: {
+                    post_state: sys.brd.state,
+                    effects: Set(
+                        BRD_UpdateInput(Set(BridgeBRAlgorithmResponse({
+                            cfg: p.cfg,
+                            args: p.args,
+                            resp: {btx2: None, m: None, bst: Some(bst)}
+                        })))
+                    )
+                }
+            })
+        } else {
+            val bvks = bst.aux.unwrap().bvks
+            val com = bst.aux.unwrap().com
+            val cID = bst.cID.unwrap()
+            val msg = {h: bst.h.unwrap(), avk: bst.avk_prim.unwrap()}
 
-// | ASignRequest({cfg: MsgConfig, m: ATMS_Document, vks: List[ATMS_VK], S: List[{vk:ATMS_VK, sig: ATMS_Signature}]})
-        val S = com.foldl(List(), (acc, party) => {
-            if (bvks.has(party)){
-                val bvk = bvks.get(party)
-                val e = bst.m.find(x => x.party == party and x.avk == bvk)
-                if (e != None){
-                    acc.append({vk: bvk, sig: e.unwrap().sig})
+            val S = com.foldl(List(), (acc, party) => {
+                if (bvks.has(party)){
+                    val bvk = bvks.get(party)
+                    val e = bst.m.find(x => x.party == party and x.avk == bvk)
+                    if (e != None){
+                        acc.append({vk: bvk, sig: e.unwrap().sig})
+                    }else{
+                        acc
+                    }
                 }else{
                     acc
                 }
-            }else{
-                acc
-            }
-        })
+            })
 
-        
+            val vks = com.listFilterMap(party => if (bvks.has(party) and com.listHas(party)) Some(bvks.get(party)) else None)
 
-        val vks = com.listFilterMap(party => if (bvks.has(party) and com.listHas(party)) Some(bvks.get(party)) else None)
-
-        val br_trans = {
-            post_state: sys.brd.state,
-            effects: Set(
-                BRD_UpdateInput(Set()),                
-                BRD_AppendHandle((BridgeASigWait({
-                    cfg: p.cfg, 
-                    args: p.args, 
-                    bst: bst,
-                    msg: msg,
-                    cID: cID
+            val br_trans = {
+                post_state: sys.brd.state,
+                effects: Set(
+                    BRD_UpdateInput(Set()),
+                    BRD_AppendHandle((BridgeASigWait({
+                        cfg: p.cfg,
+                        args: p.args,
+                        bst: bst,
+                        msg: msg,
+                        cID: cID
                     }))),
-            )
-        }
+                )
+            }
 
-        val atms_trans = {
-            post_state: sys.atms.state,
-            effects: Set(
-                ATMS_UpdateInput(Set(ASignRequest({
-                    cfg: p.cfg,
-                    m: msg,
-                    vks: vks,
-                    S: S
-                })))
-            )
-        }
-        
-        if(S.length() == 0 and com.length() > 0){
-            Map().get(22) // FIXME
-        }else{
+            val atms_trans = {
+                post_state: sys.atms.state,
+                effects: Set(
+                    ATMS_UpdateInput(Set(ASignRequest({
+                        cfg: p.cfg,
+                        m: msg,
+                        vks: vks,
+                        S: S
+                    })))
+                )
+            }
+
             Set({...sys.brd_id_ctrans(),
                 brd: br_trans,
                 atms: atms_trans,
             })
         }
-    }  
+    }
 
     pure def brd_br_5_case5_2(sys : BRD_CSystem) : Set[BRD_CTransition] = {          
         sys.atms.input.filterMap(z => match z {
@@ -336,8 +358,25 @@ module p_bridge_br{
                 | _ => None
             }).filter(q => p.cfg == q.cfg).map(q => {
                 if(p.tau == None){
-                    //Set({...sys.brd_id_ctrans(),}) // TODO
-                    Map().get(2)
+                    // Threshold signature failed; skip update, clear accumulated messages
+                    val brd_trans_fail = {
+                        post_state: sys.brd.state,
+                        effects: Set(
+                            BRD_RemoveHandle(BridgeASigWait(q)),
+                            BRD_UpdateInput(Set(BridgeBRAlgorithmResponse({
+                                cfg: p.cfg,
+                                args: q.args,
+                                resp: ({
+                                    btx2: None,
+                                    m: None,
+                                    bst: Some({...q.bst, m: Set()})
+                                })})))
+                        )
+                    }
+                    Set({...sys.brd_id_ctrans(),
+                        atms: sys.atms.atms_skip_trans(),
+                        brd: brd_trans_fail
+                    })
                 }else{
                     val btx2 = Update({msg: q.msg, sigma: p.tau.unwrap()})
                     val brd_trans = {
@@ -389,26 +428,41 @@ module p_bridge_br{
     }
 
     pure def brd_br_5_case3(sys : BRD_CSystem, p: {cfg: MsgConfig, args: BRD_BR_Args}, bst : BRD_BST_Entry) : Set[BRD_CTransition] = {
-        
-        val brd_trans = { 
-            post_state: sys.brd.state,
-            effects: Set(
-                BRD_UpdateInput(Set()),
-                BRD_AppendHandle(BridgeComSelWait({cfg: p.cfg, args: p.args, bst: {...bst, m: bst.m.union(p.args.ms)} }))
-            )
-        }
+        if (bst.aux == None) {
+            // RoT not yet completed; aux (bvks + committee) not available
+            Set({...sys.brd_id_ctrans(),
+                brd: {
+                    post_state: sys.brd.state,
+                    effects: Set(
+                        BRD_UpdateInput(Set(BridgeBRAlgorithmResponse({
+                            cfg: p.cfg,
+                            args: p.args,
+                            resp: {btx2: None, m: None, bst: Some(bst)}
+                        })))
+                    )
+                }
+            })
+        } else {
+            val brd_trans = {
+                post_state: sys.brd.state,
+                effects: Set(
+                    BRD_UpdateInput(Set()),
+                    BRD_AppendHandle(BridgeComSelWait({cfg: p.cfg, args: p.args, bst: {...bst, m: bst.m.union(p.args.ms)} }))
+                )
+            }
 
-        val ledger1_trans = {
-            post_state: sys.ledger1.state,
-            effects: Set(
-                LED_UpdateInput(Set(ComSelRequest({cfg: p.cfg})))
-            )
-        }
+            val ledger1_trans = {
+                post_state: sys.ledger1.state,
+                effects: Set(
+                    LED_UpdateInput(Set(ComSelRequest({cfg: p.cfg})))
+                )
+            }
 
-        Set({...sys.brd_id_ctrans(),
-            brd: brd_trans,
-            ledger1: ledger1_trans,
-        })
+            Set({...sys.brd_id_ctrans(),
+                brd: brd_trans,
+                ledger1: ledger1_trans,
+            })
+        }
     }
 
     pure def brd_br_5_case3_2(sys : BRD_CSystem) : Set[BRD_CTransition] = {    
@@ -467,11 +521,11 @@ module p_bridge_br{
                     val brd_trans = {
                         post_state: sys.brd.state,
                         effects: Set(
+                            BRD_RemoveHandle(BridgeAKeyWait(q)),
                             BRD_UpdateInput(Set(BridgeBRAlgorithmResponse({
-                                cfg: q.cfg, 
-                                args: q.args, 
+                                cfg: q.cfg,
+                                args: q.args,
                                 resp: ({
-                                    //btx1: None,
                                     btx2: None,
                                     m: None,
                                     bst: None
@@ -542,7 +596,7 @@ module p_bridge_br{
                     )
                 }
 
-                val L = q.args.L1.slice(0, p.p) // TODO: off by one?
+                val L = q.args.L1.slice(0, p.p)
 
                 val hash_trans = {
                     post_state: sys.hash.state,
@@ -683,7 +737,20 @@ module p_bridge_br{
         }).map(p => {
 
             if(p.resp.bst == None){
-                Map().get(1) // should not happen
+                // ATMS key aggregation failed; preserve current bst, no transaction
+                val current_bst = sys.brd.state.bst.get(p.cfg.party)
+                Set({...sys.brd_id_ctrans(),
+                    brd: {
+                        post_state: sys.brd.state,
+                        effects: Set(
+                            BRD_UpdateInput(Set(BridgeDiffuse({
+                                cfg: p.cfg, args: p.args,
+                                resp: {btx2: None, m: None, bst: Some(current_bst)}
+                            }))),
+                            BRD_LogMessage(BridgeBRAlgorithmResponse(p))
+                        )
+                    }
+                })
             }else{
 
                 Set({...sys.brd_id_ctrans(),

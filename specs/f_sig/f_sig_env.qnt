@@ -3,14 +3,14 @@ module f_sig_env{
 
     import basicSpells.* from "../../spells/basicSpells"
     import f_sig_types.* from "./f_sig_types"
-    import f_sig_flipfloppy.* from "./f_sig_flipfloppy"
+    import f_sig.* from "./f_sig"
     import common.* from "../common"    
 
    
-   val Parties = Set(1,2,3)
-   val Signers = Set(1,2,3)
-   val Corrupted = Set(3)
-   val sids = Set(1)
+   val Parties = 1.to(PARTY_SIZE)
+   val Signers = Parties
+   val Corrupted = 1.to(CORRUPTED_PARTY_SIZE)
+   val sids = 1.to(SID_SIZE)
 
    val ALL_MSGs = Set(
        "Message 1",
@@ -20,8 +20,8 @@ module f_sig_env{
        "Message 5",
    )
 
-   val ALL_VKs = 1.to(10)
-   val ALL_SIGs = 1.to(10)
+   val ALL_VKs = 1.to(UNIVERSE_SIZE)
+   val ALL_SIGs = 1.to(UNIVERSE_SIZE)
 
     action step : bool = any {
         sig_step,  

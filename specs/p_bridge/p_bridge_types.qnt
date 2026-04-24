@@ -371,14 +371,14 @@ module p_bridge_types {
     //     })
     // }
 
-    // pure def brd_get_bridge_response_messages(messages: Set[BRD_Message]): Set[{cfg: MsgConfig, args: BRD_BR_Args, resp: BRD_BR_Resp,}] = {
-    //     messages.filterMap(m => {
-    //         match m {
-    //             | BridgeResponse(p) => Some(p)
-    //             | _ => None
-    //         }
-    //     })
-    // }
+    pure def brd_get_bridge_response_messages(messages: Set[BRD_Message]): Set[{cfg: MsgConfig, args: BRD_BR_Args, resp: BRD_BR_Resp}] = {
+        messages.filterMap(m => {
+            match m {
+                | BridgeResponse(p) => Some(p)
+                | _ => None
+            }
+        })
+    }
     // pure def brd_get_bkgen_atm_gen_wait_messages(messages: Set[BRD_Message]): Set[{cfg: MsgConfig}] = {
     //     messages.filterMap(m => {
     //         match m {
@@ -535,23 +535,23 @@ module p_bridge_types {
         })
     }
 
-    // pure def brd_get_bkgen_response_messages(messages: Set[BRD_Message]): Set[{cfg: MsgConfig, bvk: int}] = {
-    //     messages.filterMap(m => {
-    //         match m {
-    //             | BKGenResponse(p) => Some(p)
-    //             | _ => None
-    //         }
-    //     })
-    // }
+    pure def brd_get_bkgen_response_messages(messages: Set[BRD_Message]): Set[{cfg: MsgConfig, bvk: int}] = {
+        messages.filterMap(m => {
+            match m {
+                | BKGenResponse(p) => Some(p)
+                | _ => None
+            }
+        })
+    }
 
-    // pure def brd_get_rot_response_messages(messages: Set[BRD_Message]): Set[{cfg: MsgConfig, bvks: Party -> BRD_BVK, com: Committee, avk: BRD_ROT}] = {
-    //     messages.filterMap(m => {
-    //         match m {
-    //             | RoTResponse(p) => Some(p)
-    //             | _ => None
-    //         }
-    //     })
-    // }
+    pure def brd_get_rot_response_messages(messages: Set[BRD_Message]): Set[{cfg: MsgConfig, bvks: Party -> BRD_BVK, com: Committee, avk: BRD_ROT}] = {
+        messages.filterMap(m => {
+            match m {
+                | RoTResponse(p) => Some(p)
+                | _ => None
+            }
+        })
+    }
 
     pure def brd_get_certify_response_messages(messages: Set[BRD_Message]): Set[{cfg: MsgConfig, rot: BRD_ROT, x: LED_Tx, L1: List[LED_Tx], apl: int, h: int, res: Option[({pi: int, h: int})], r: Time} ] = {
         messages.filterMap(m => {

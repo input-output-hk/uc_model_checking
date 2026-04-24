@@ -67,10 +67,10 @@ module g_clock_types {
             {...sys, 
                 log: if (sys.params.enable_logging) sys.log.setAdd({idx: sys.log.size(), msg: msg, state : sys.state}) else sys.log
             }
-        | GC_UpdateInput(msgs) => 
-            {...sys, 
+        | GC_UpdateInput(msgs) =>
+            {...sys,
                 input: msgs,
-                log: if (sys.params.enable_logging and msgs.gc_get_all_response_messages().size() > 0) sys.log.setAdd({idx: sys.log.size(), msg: (msgs.pickSome()), state : sys.state}) else sys.log
+                log: if (sys.params.enable_logging and msgs.gc_get_all_response_messages().size() == 1) sys.log.setAdd({idx: sys.log.size(), msg: (msgs.pickSome()), state : sys.state}) else sys.log
             }
         | GC_AppendHandle(msg) => 
             {...sys,

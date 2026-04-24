@@ -39,9 +39,11 @@ module p_bridge_properties{
 
     val Parties = 1.to(PARTY_SIZE)
     val C = 1.to(CORRUPTED_PARTY_SIZE)
-    val SIDs = 1.to(SID_SIZE)
+    // Bridge BKGen runs once per party (not per SID), so the clock can only advance
+    // when each party has exactly one SID to OK. SID_SIZE > 1 permanently blocks the clock.
+    val SIDs = Set(1)
     val P1 = Parties
-    val P2 = Parties   
+    val P2 = Parties
 
     action init = all {
         p_bridge_env_init({

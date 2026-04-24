@@ -258,7 +258,8 @@ module f_atms{
                     )
                 })
             }else{
-                val maybe_new_avk = san_avk(p.sim_avk, p.vks, atms, p.cfg.sid)
+                val maybe_new_avk = if (p.vks.length() < atms.params.t + 1) None
+                    else san_avk(p.sim_avk, p.vks, atms, p.cfg.sid)
 
                 if (clean_avk(maybe_new_avk, p.vks, sid_state, atms.params.C)){ 
                     
@@ -671,7 +672,7 @@ module f_atms{
         nondet sim_avk = ALL_AVKS.oneOf()
         nondet sim_tau = ALL_ASIGS.oneOf()
         //val sim_bs = List(true, false, true) // TODO: generate this thing somehow
-        nondet sim_bs = listSamplingSpace(5, Set(true,false)).oneOf()
+        nondet sim_bs = listSamplingSpace(PARTY_SIZE, Set(true,false)).oneOf()
         nondet t = atms_asign_2(f_atms_s, Some(sim_avk), Some(sim_tau), sim_bs).oneOf()
         f_atms_s' = atms_process_transitions(f_atms_s, t) 
     }         
@@ -755,17 +756,7 @@ module f_atms{
 
             val avk = sid_state.AVK.find(x => x.vks == p.vks).unwrap().avk
 
-            if(false and (not (clean_avk(avk, p.vks, sid_state, atms.params.C)))){
-                    // Set({
-                    //     post_state: atms.state,
-                    //     effects: Set(
-                    //         ATMS_UpdateInput(Set()),
-                    //     )
-                    // }) // run out of VKS, raise error?
-                    Map().get(1)
-            }else{
-
-                if(or {
+            if(or {
                     avk == None,
                     not (p.S.indices().forall(i => {
                         (p.vks.indices().filter(j => p.vks[j] == p.S[i].vk)).size() == 1
@@ -846,7 +837,6 @@ module f_atms{
                         }   
                     }
                 }
-            }
             }).flatten()
     
     }
@@ -861,6 +851,7 @@ module f_atms{
                 Set({
                     post_state: atms.state,
                     effects: Set(
+                        ATMS_LogMessage(AVerifyRequest(p)),
                         ATMS_UpdateInput(Set(SIMControl)),
                         ATMS_AppendHandle(SIMAVerifyHold(p))
                     )
@@ -954,10 +945,19 @@ module f_atms{
                         )
                     })
                 }else{
-                    val vk_star = maybe_vk_star.unwrap()
-                    val new_AVK = sid_state.AVK.setAdd({vks: maybe_vk_star.unwrap(), avk: Some(p.avk)})
-                    val new_VKs = sid_state.VKs.setAdd({avk: p.avk, vks: maybe_vk_star.unwrap()})
-                    val new_CVK = maybe_vk_star.unwrap().foldl(sid_state.CVK, (cvk, key) => {
+                    val existing_avk_entry = sid_state.AVK.find(x => x.avk == Some(p.avk))
+                    val vk_star = if (existing_avk_entry != None) {
+                        existing_avk_entry.unwrap().vks
+                    } else {
+                        maybe_vk_star.unwrap()
+                    }
+                    val new_AVK = if (existing_avk_entry != None) {
+                        sid_state.AVK
+                    } else {
+                        sid_state.AVK.setAdd({vks: vk_star, avk: Some(p.avk)})
+                    }
+                    val new_VKs = sid_state.VKs.setAdd({avk: p.avk, vks: vk_star})
+                    val new_CVK = vk_star.foldl(sid_state.CVK, (cvk, key) => {
                         if(sid_state.VK.exists(x => x.vk == key)){
                             cvk
                         }else{

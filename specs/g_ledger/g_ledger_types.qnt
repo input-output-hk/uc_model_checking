@@ -190,14 +190,14 @@ module g_ledger_types{
             | _ => Set()
         }
     }
-    // pure def led_get_eval_request_messages(messages: Set[LED_Message]): Set[{cfg: MsgConfig, log: List[LED_Tx], tx: LED_Tx}] = {
-    //     messages.filterMap(m => {
-    //     match m {
-    //         | EvalRequest(p) => Some(p)
-    //         | _ => None
-    //     }
-    //     })
-    // }
+    pure def led_get_eval_request_messages(messages: Set[LED_Message]): Set[{cfg: MsgConfig, log: List[LED_Tx], tx: LED_Tx}] = {
+        messages.filterMap(m => {
+        match m {
+            | EvalRequest(p) => Some(p)
+            | _ => None
+        }
+        })
+    }
 
     // pure def led_get_read_loop_computation_messages(messages: Set[LED_Message]) : Set[{cfg: MsgConfig, I : List[Pointer], ptr_prim : Pointer, buffer: LED_Buffer, log: LED_Log, t: Time}] = {
     //     messages.filterMap(m => {
@@ -381,14 +381,14 @@ module g_ledger_types{
     //     })
     // }
 
-    // pure def led_get_submit_response_messages(messages: Set[LED_Message]): Set[{cfg: MsgConfig, tx:LED_Tx, eID: Pointer, t: Time}] = {
-    //     messages.filterMap(m => {
-    //     match m {
-    //         | SubmitResponse(p) => Some(p)
-    //         | _ => None
-    //     }
-    //     })
-    // }
+    pure def led_get_submit_response_messages(messages: Set[LED_Message]): Set[{cfg: MsgConfig, tx:LED_Tx, eID: Pointer, t: Time}] = {
+        messages.filterMap(m => {
+        match m {
+            | SubmitResponse(p) => Some(p)
+            | _ => None
+        }
+        })
+    }
 
     // pure def led_get_ok_request_messages(messages: Set[LED_Message]): Set[{cfg: MsgConfig}] = {
     //     messages.filterMap(m => {
@@ -455,14 +455,14 @@ module g_ledger_types{
     //     })
     // }
 
-    // pure def led_get_read_response_messages(messages: Set[LED_Message]): Set[{cfg: MsgConfig, result: List[LED_Tx]}] = {
-    //     messages.filterMap(m => {
-    //     match m {
-    //         | ReadResponse(p) => Some(p)
-    //         | _ => None
-    //     }
-    //     })
-    // }
+    pure def led_get_read_response_messages(messages: Set[LED_Message]): Set[{cfg: MsgConfig, result: List[LED_Tx]}] = {
+        messages.filterMap(m => {
+        match m {
+            | ReadResponse(p) => Some(p)
+            | _ => None
+        }
+        })
+    }
 
     // pure def led_get_sim_control_messages(messages: Set[LED_Message]): Set[LED_Message] = {
     //     messages.filter(m => {

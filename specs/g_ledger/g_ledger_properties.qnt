@@ -31,27 +31,35 @@ module g_ledger_properties {
 val LED_Liveness = g_ledger_s.log.forall(log_entry1 => {
     match log_entry1.msg {
         | SubmitResponse(p) => {
-             g_ledger_s.log.forall(log_entry2 => {
-                match log_entry2.msg {
-                    | ReadRequest(q) => {
-                        g_ledger_s.log.forall(log_entry3 => {
-                            match log_entry3.msg {
-                                | ReadResponse(d) => {
-                                    and {
-                                        (log_entry1.time + delta_latency + delta_slack < log_entry2.time),
-                                        log_entry1.idx < log_entry2.idx,
-                                        d.cfg.nonce == q.cfg.nonce    
-                                    } implies {
-                                        (d.result.listHas(p.tx))
+            // Only valid transactions (b=true for Normal txs) are guaranteed to appear in logs
+            val is_valid_tx = match p.tx {
+                | Normal(x) => x.b
+                | _ => true
+            }
+            if (not(is_valid_tx)) true
+            else {
+                g_ledger_s.log.forall(log_entry2 => {
+                    match log_entry2.msg {
+                        | ReadRequest(q) => {
+                            g_ledger_s.log.forall(log_entry3 => {
+                                match log_entry3.msg {
+                                    | ReadResponse(d) => {
+                                        and {
+                                            (log_entry1.time + delta_latency + delta_slack < log_entry2.time),
+                                            log_entry1.idx < log_entry2.idx,
+                                            d.cfg.nonce == q.cfg.nonce
+                                        } implies {
+                                            (d.result.listHas(p.tx))
+                                        }
                                     }
+                                    | _ => true
                                 }
-                                | _ => true
-                            }
-                        })
+                            })
+                        }
+                        | _ => true
                     }
-                    | _ => true
-                }
-             })
+                })
+            }
         }
         | _ => true
     }
@@ -268,8 +276,7 @@ val APL_Monotonicity = g_ledger_s.log.forall(log_entry1 => {
 })
 
 // delta-Growth: for any honest party P that requests APL in rounds r and r' ≥ r + delta with values p_r and p_{r'} we have that p_{r'} ≥ p_r + 1. 
-// FALSIFIED!
-val APL_DeltaGrowth = g_ledger_s.log.forall(log_entry1 => {
+val APL_DeltaGrowth =g_ledger_s.log.forall(log_entry1 => {
     match log_entry1.msg {
         | APLResponse(p) => {
             g_ledger_s.log.forall(log_entry2 => {
@@ -298,6 +305,7 @@ val APL_DeltaGrowth = g_ledger_s.log.forall(log_entry1 => {
 val APL_AllProps = all {
     APL_Agreement,
     APL_Monotonicity,
+    //APL_DeltaGrowth,
 }
 
 

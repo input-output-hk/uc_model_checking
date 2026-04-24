@@ -17,7 +17,7 @@ module p_bridge_inizk{
 
     pure def brd_certify_1(sys: BRD_CSystem) : Set[BRD_CTransition] = {
         sys.brd.input.brd_get_certify_request_messages().map(p => {
-            if(brd_access_check(p.cfg, sys.brd.params)){ // TODO: and p.cfg.party.in(sys.brd.params.P1
+            if(brd_access_check(p.cfg, sys.brd.params)){
                 {...sys.brd_id_ctrans(),
                     brd: {
                         post_state: sys.brd.state,

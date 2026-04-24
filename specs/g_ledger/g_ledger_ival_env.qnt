@@ -121,7 +121,6 @@ module g_ledger_ival_env {
          {
             post_state : sys.state,
             effects : Set(
-                LED_LogMessage(msg_log),
                 LED_UpdateInput(Set())
             )
          })

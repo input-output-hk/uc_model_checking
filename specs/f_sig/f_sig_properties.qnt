@@ -2,7 +2,7 @@ module f_sig_properties {
     
     import basicSpells.* from "../../spells/basicSpells"
     import f_sig_types.* from "./f_sig_types"
-    import f_sig_flipfloppy.* from "./f_sig_flipfloppy"
+    import f_sig.* from "./f_sig"
     import f_sig_env.* from "./f_sig_env"
     import common.* from "../common"    
 

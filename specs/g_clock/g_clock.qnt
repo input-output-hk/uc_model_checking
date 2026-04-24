@@ -46,10 +46,9 @@ module g_clock{
                     post_state : {...clock.state, 
                         Reg : clock.state.Reg.union(Set({party: msg.cfg.party, sid: msg.cfg.sid})),
                     },
-                    effects : Set( 
-                        GC_LogMessage(RegisterRequest(msg)), 
+                    effects : Set(
+                        GC_LogMessage(RegisterRequest(msg)),
                         GC_UpdateInput(Set(RegisterResponse(msg))),
-                        GC_LogMessage(RegisterResponse(msg)),
                     )
                 })
                 | _ => Set()    

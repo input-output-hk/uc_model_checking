@@ -15,14 +15,18 @@ module f_hash {
     // sending hash requests
     pure def hash_hash_1(f_hash: HASH_System) : Set[HASH_Transition] = {
         f_hash.input.filterMap(m => match m { | HashRequest(p) => Some(p) | _ => None}).map(p => {
+            if (hash_access_check(p.cfg, f_hash.params)) {
                 {
-                post_state: f_hash.state,
-                effects: Set(
-                    HASH_LogMessage(HashRequest(p)),
-                    HASH_AppendHandle(SIMHashRequestHold(p)),
-                    HASH_UpdateInput(Set(HASH_SIMControl))
+                    post_state: f_hash.state,
+                    effects: Set(
+                        HASH_LogMessage(HashRequest(p)),
+                        HASH_AppendHandle(SIMHashRequestHold(p)),
+                        HASH_UpdateInput(Set(HASH_SIMControl))
                     )
                 }
+            } else {
+                hash_skip_trans(f_hash)
+            }
         })
     }
     

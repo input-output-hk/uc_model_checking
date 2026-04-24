@@ -113,6 +113,9 @@ module f_pki_types {
         })
     }    
 
+    pure def pki_access_check(cfg: MsgConfig, params: PKI_SystemParams): bool =
+        cfg.party.in(params.P) and cfg.sid.in(params.SIDs)
+
     pure def pki_id_trans(pki : PKI_System) : PKI_Transition = {
         post_state : pki.state,
         effects : Set(),
@@ -130,13 +133,14 @@ module f_pki_types {
     pure def pki_get_all_response_messages(messages: Set[PKI_Message]): Set[PKI_Message] = {
         messages.filterMap(m => {
         match m {
-            | PKI_RegisterResponse(p) => Some(PKI_RegisterResponse(p))
-            | PKI_RetrieveResponse(p) => Some(PKI_RetrieveResponse(p))
+            | PKI_RegisterResponse(p)  => Some(PKI_RegisterResponse(p))
+            | PKI_RetrieveResponse(p)  => Some(PKI_RetrieveResponse(p))
             | PKI_CertVerifyResponse(p) => Some(PKI_CertVerifyResponse(p))
+            | PKI_GetAllResponse(p)    => Some(PKI_GetAllResponse(p))
             | _ => None
         }
         })
-    }  
+    }
 
     pure def pki_get_register_request_messages(messages: Set[PKI_Message]): Set[{cfg: MsgConfig, vk: VK}] = {
         messages.filterMap(m => {

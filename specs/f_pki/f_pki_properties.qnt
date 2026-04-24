@@ -38,6 +38,7 @@ module f_pki_properties {
             env_pki_register_reqs(cfg),
             env_pki_retrieve_reqs(cfg),
             env_pki_verify_reqs(cfg),
+            env_pki_get_all_reqs(cfg),
             env_pki_sim_reqs,
         }
     }
@@ -76,6 +77,16 @@ module f_pki_properties {
         }
     }    
 
+    // send get all request
+    action env_pki_get_all_reqs(cfg: MsgConfig) : bool = all {
+        f_pki_s.input.size() == 0,
+
+        f_pki_s' = {...f_pki_s,
+            input: Set(PKI_GetAllRequest({cfg: cfg})),
+            nonce: f_pki_s.nonce + 1
+        }
+    }
+
     // send verify request
     action env_pki_verify_reqs(cfg: MsgConfig) : bool = all {
         f_pki_s.input.size() == 0,
@@ -96,7 +107,6 @@ module f_pki_properties {
          {
             post_state : pki.state,
             effects : Set(
-                PKI_LogMessage(msg_log),
                 PKI_UpdateInput(Set())
             )
          })
@@ -116,6 +126,64 @@ module f_pki_properties {
 
 
     // ================= PROPERTIES =================
+
+    // ---- Liveness: must-fail invariants ----
+    // Each of these should be VIOLATED by the model checker, witnessing that the
+    // corresponding operation can actually complete.
+
+    // Fails when all parties have registered in some session
+    val RegisterLiveness = sids.forall(sid =>
+        f_pki_s.state.get(sid).Reg.size() < Parties.size()
+    )
+
+    // Fails when at least one successful retrieve response appears in the log
+    val RetrieveLiveness = f_pki_s.log.forall(e => match e.msg {
+        | PKI_RetrieveResponse(r) => r.vk == None
+        | _ => true
+    })
+
+    // Fails when at least one successful cert-verify response appears in the log
+    val CertVerifyLiveness = f_pki_s.log.forall(e => match e.msg {
+        | PKI_CertVerifyResponse(r) => r.result == false
+        | _ => true
+    })
+
+    // Fails when a GetAll response with at least one entry appears in the log
+    val GetAllLiveness = f_pki_s.log.forall(e => match e.msg {
+        | PKI_GetAllResponse(r) => r.vks.keys().size() == 0
+        | _ => true
+    })
+
+    // ---- Liveness: temporal properties ----
+    // Each property says: if `step` is weakly fair then the system is live.
+
+    // Eventually some party registers
+    temporal RegisterLivenessTemp =
+        step.weakFair(Set(f_pki_s)).implies(
+            eventually(sids.exists(sid => f_pki_s.state.get(sid).Reg.size() > 0))
+        )
+
+    // If a party registered, eventually a retrieve for them succeeds
+    temporal RetrieveLivenessTemp =
+        step.weakFair(Set(f_pki_s)).implies(
+            (sids.exists(sid => f_pki_s.state.get(sid).Reg.size() > 0)) implies
+            eventually(f_pki_s.log.exists(e => match e.msg {
+                | PKI_RetrieveResponse(r) => r.vk != None
+                | _ => false
+            }))
+        )
+
+    // If a party registered, eventually a cert-verify for them succeeds
+    temporal CertVerifyLivenessTemp =
+        step.weakFair(Set(f_pki_s)).implies(
+            (sids.exists(sid => f_pki_s.state.get(sid).Ver.size() > 0)) implies
+            eventually(f_pki_s.log.exists(e => match e.msg {
+                | PKI_CertVerifyResponse(r) => r.result == true
+                | _ => false
+            }))
+        )
+
+    // ---- Safety properties ----
 
     // one entry per party in Reg and Ver lists
     val OneEntryPerPartyInRegAndVerLists = Parties.forall(p => sids.forall({sid =>
@@ -209,11 +277,46 @@ module f_pki_properties {
     })    
 
 
+    // GetAllCorrectness: the vks map in GetAllResponse exactly reflects prior successful registrations
+    val GetAllCorrectness = f_pki_s.log.forall(entry1 => {
+        match entry1.msg {
+        | PKI_GetAllResponse(get_resp) => {
+            val sid = get_resp.cfg.sid
+            // Soundness: every party in vks has a prior successful RegisterResponse with matching vk
+            val soundness = get_resp.vks.keys().forall(party =>
+                f_pki_s.log.exists(entry2 => match entry2.msg {
+                    | PKI_RegisterResponse(reg_resp) => and {
+                        entry2.idx < entry1.idx,
+                        reg_resp.cfg.sid == sid,
+                        reg_resp.cfg.party == party,
+                        reg_resp.cert != None,
+                        reg_resp.vk == get_resp.vks.get(party)
+                    }
+                    | _ => false
+                })
+            )
+            // Completeness: every prior successful registration appears in vks
+            val completeness = f_pki_s.log.forall(entry2 => match entry2.msg {
+                | PKI_RegisterResponse(reg_resp) =>
+                    (and {
+                        entry2.idx < entry1.idx,
+                        reg_resp.cfg.sid == sid,
+                        reg_resp.cert != None
+                    }) implies reg_resp.cfg.party.in(get_resp.vks.keys())
+                | _ => true
+            })
+            and { soundness, completeness }
+        }
+        | _ => true
+        }
+    })
+
     val AllProps = all {
         OneEntryPerPartyInRegAndVerLists,
         RetrieveSucceedsForRegistered,
         RetrieveFailsForUnregistered,
         CertVerifySucceedsForRegistered,
+        GetAllCorrectness,
     }
 
 }

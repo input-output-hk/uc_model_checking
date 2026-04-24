@@ -16,8 +16,6 @@ module f_atms_properties{
     val P6 = f_atms_s.log.map(x => x.msg).atms_get_verify_response_messages().size() <= 2
     val P7 = f_atms_s.log.map(x => x.msg).atms_get_asign_response_messages().size() <= 2
     val P8 = f_atms_s.log.map(x => x.msg).atms_get_averify_response_messages().size() <= 2
-    val AVK_ThresholdNecessary = f_atms_s.log.map(x => x.msg).atms_get_akey_response_messages().forall(akey =>
-    (akey.avk != None) implies (akey.vks.length() >= f_atms_s.params.t + 1))    
 
 
 
@@ -568,7 +566,9 @@ val ASign_ThresholdNecessary = f_atms_s.log.map(x => x.msg).atms_get_asign_respo
     (asign.tau != None) implies (asign.S.length() >= f_atms_s.params.t + 1)
 )
 
-
+val AVK_ThresholdNecessary = f_atms_s.log.map(x => x.msg).atms_get_akey_response_messages().forall(akey =>
+    (akey.avk != None) implies (akey.vks.length() >= f_atms_s.params.t + 1)
+)
 
 val AllProps = all {
     AllFunctional,
@@ -576,7 +576,8 @@ val AllProps = all {
     AllDeterministic,
     AllCorrectness,
     AllUnforgeability,
-    ASign_ThresholdNecessary
+    ASign_ThresholdNecessary,
+    AVK_ThresholdNecessary,
 }
 
 

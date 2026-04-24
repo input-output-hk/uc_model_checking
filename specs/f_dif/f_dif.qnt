@@ -299,7 +299,8 @@ module f_dif{
     action dif_fetch_2_act : bool = all {
         // f_dif_s.input.dif_get_sim_control_messages().size() > 0,
         // f_dif_s.handles.dif_get_sim_fetch_hold_messages().size() > 0,
-        nondet sim_i_early = 1.to(10).powerset().oneOf()
+        val all_ctrs = f_dif_s.params.SIDs.map(sid => f_dif_s.state.get(sid).L.keys().map(k => k.ctr)).flatten()
+        nondet sim_i_early = all_ctrs.powerset().oneOf()
         nondet t = dif_fetch_2(f_dif_s, sim_i_early).oneOf()
         dif_gc_step_with((dif, clock) => dif_fetch_2(dif, sim_i_early).map(x => (x, gc_id_trans(clock))))
     }     
