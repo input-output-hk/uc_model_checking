@@ -10,14 +10,13 @@ module p_bridge_types {
     import g_clock_types.* from "../g_clock/g_clock_types"    
     import g_ledger_types.* from "../g_ledger/g_ledger_types" 
     import f_dif_types.* from "../f_dif/f_dif_types" 
-    //import f_sig_types.* from "../f_sig/f_sig_types" 
     import f_pki_types.* from "../f_pki/f_pki_types"
     import f_hash_types.* from "../f_hash/f_hash_types"
     import f_inizk_types.* from "../f_inizk/f_inizk_types"
     
     type BRD_BVK = ATMS_VK 
     type BRD_ROT = ATMS_AVK 
-    type BRD_AUX = {bvks: List[BRD_BVK], com: Committee}  
+    type BRD_AUX = {bvks: Party -> BRD_BVK, com: Committee}
     type BRD_BR_Args = {r: Time, ms: Set[{party: Party, avk: ATMS_AVK, sig: int}], L1: List[LED_Tx], L2: List[LED_Tx]}
     type BRD_BST_Entry = {
                 bvk: Option[BRD_BVK],
@@ -28,11 +27,11 @@ module p_bridge_types {
                 aux: Option[{bvks: Party -> BRD_BVK, com: Committee}],
                 avk_prim: Option[ATMS_AVK],
                 h: Option[int],
+                apl: Option[int],
     }
 
     type BRD_BR_Resp = {
-            //btx1: Option[LED_Tx], 
-            btx2: Option[LED_Tx], 
+            btx2: Option[LED_Tx],
             m: Option[{party: Party, avk: ATMS_AVK, sig: int}], 
             bst: Option[BRD_BST_Entry] }
 
@@ -100,13 +99,10 @@ module p_bridge_types {
     type BRD_SystemParams = {
         P: Set[Party],
         C: Set[Party],
-        SIDs: Set[SID], 
-        //P1: Set[Party],
-        //P2: Set[Party],
+        SIDs: Set[SID],
         r0: Time,
-        delta: int, // for diffuse
-        //t: int, // for F-ATMS
-        R: int, // length of rounds? 
+        delta: int,
+        R: int,
     }
 
     type BRD_StateVars = {
@@ -182,12 +178,6 @@ module p_bridge_types {
 
     pure def brd_id_ctrans(sys: BRD_CSystem) : BRD_CTransition = {
         {
-            // brd: {
-            //     post_state: sys.brd.state,
-            //     effects : Set(
-            //         BRD_UpdateInput(Set())
-            //     )
-            // },
             brd: sys.brd.brd_id_trans(),
             clock: sys.clock.gc_id_trans(),
             atms: sys.atms.atms_id_trans(), 

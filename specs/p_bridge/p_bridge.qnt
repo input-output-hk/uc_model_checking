@@ -103,6 +103,7 @@ module p_bridge {
                     aux: None,
                     avk_prim: None,
                     h: None,
+                    apl: None,
                 }),
                 bkgen_flag: Set(),
                 rot_flag: Set(),

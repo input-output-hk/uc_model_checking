@@ -243,7 +243,6 @@ module p_bridge_br{
                     cfg: p.cfg, 
                     args: p.args, 
                     resp: ({
-                        //btx1: None,
                         btx2: None,
                         m: None,
                         bst: Some(bst)
@@ -265,7 +264,6 @@ module p_bridge_br{
                     cfg: p.cfg, 
                     args: p.args, 
                     resp: ({
-                        //btx1: None,
                         btx2: None,
                         m: None,
                         bst: Some({...bst, m: bst.m.union(p.args.ms)})
@@ -279,7 +277,7 @@ module p_bridge_br{
     }        
 
     pure def brd_br_5_case5(sys : BRD_CSystem, p: {cfg: MsgConfig, args: BRD_BR_Args}, bst: BRD_BST_Entry) : Set[BRD_CTransition] = {
-        if (bst.aux == None or bst.h == None or bst.avk_prim == None or bst.cID == None) {
+        if (bst.aux == None or bst.aux_prim == None or bst.h == None or bst.avk_prim == None or bst.cID == None) {
             // Prerequisite state not yet established (case3 must run first); skip
             Set({...sys.brd_id_ctrans(),
                 brd: {
@@ -387,8 +385,7 @@ module p_bridge_br{
                                 cfg: p.cfg, 
                                 args: q.args, 
                                 resp: ({
-                                    //btx1: None,
-                                    btx2: Some(btx2),
+                                                btx2: Some(btx2),
                                     m: None,
                                     bst: Some({...q.bst, m : Set(), aux: q.bst.aux_prim})
                                 })})))
@@ -414,7 +411,6 @@ module p_bridge_br{
                     cfg: p.cfg, 
                     args: p.args, 
                     resp: ({
-                        //btx1: None,
                         btx2: None,
                         m: None,
                         bst: Some(bst)
@@ -674,9 +670,10 @@ module p_bridge_br{
                 | _ => None
             }).filter(q => p.cfg == q.cfg).map(q => {
 
-                val bst = {...q.bst, 
-                    aux_prim: Some({bvks: q.bst.aux.unwrap().bvks, com: q.com_prim}),    
+                val bst = {...q.bst,
+                    aux_prim: Some({bvks: q.bst.aux.unwrap().bvks, com: q.com_prim}),
                     h: Some(q.h),
+                    apl: Some(q.apl),
                     avk_prim: Some(q.avk_prim)
                 }
 
@@ -689,8 +686,7 @@ module p_bridge_br{
                                 cfg: q.cfg, 
                                 args: q.args, 
                                 resp: ({
-                                    //btx1: None,
-                                    btx2: None,
+                                                btx2: None,
                                     m: None,
                                     bst: Some(bst) 
                                 })}))),
@@ -711,8 +707,7 @@ module p_bridge_br{
                                 cfg: q.cfg, 
                                 args: q.args, 
                                 resp: ({
-                                    //btx1: None,
-                                    btx2: None,
+                                                btx2: None,
                                     m: Some({party: p.cfg.party, avk: bst.aux.unwrap().bvks.get(p.cfg.party), sig: p.sig.unwrap()}),
                                     bst: Some(bst) 
                                 })}))),

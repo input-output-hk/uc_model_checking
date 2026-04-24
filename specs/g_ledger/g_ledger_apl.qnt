@@ -71,14 +71,16 @@ module g_ledger_apl {
 
     def led_apl_san(p: Pointer) : Option[Pointer] = {
         val S = g_ledger_s.state.ptr.keys().filter(x => x.in(g_ledger_s.params.P)).map(x => g_ledger_s.state.ptr.get(x))
+        // APL is monotone: once confirmed, always confirmed. Compute the max APL seen so far.
+        val prev_max = g_ledger_s.state.APL.keys().map(r => g_ledger_s.state.APL.get(r)).fold(0, ((a, b) => max(a, b)))
 
         if(S == Set()){
             None
         }else{
-            if(led_apl_Clean(S, g_ledger_s.params.delta_apl, p)){
+            if(led_apl_Clean(S, g_ledger_s.params.delta_apl, p) and p >= prev_max){
                 Some(p)
             } else {
-                0.to(100).find(new_p => led_apl_Clean(S, g_ledger_s.params.delta_apl, new_p))
+                0.to(100).find(new_p => led_apl_Clean(S, g_ledger_s.params.delta_apl, new_p) and new_p >= prev_max)
             }
         }
     }   

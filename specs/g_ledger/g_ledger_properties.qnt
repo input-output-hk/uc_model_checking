@@ -210,7 +210,7 @@ val ComSel_Agreement = g_ledger_s.log.forall(log_entry1 => {
                 match log_entry2.msg {
                     | ComSelResponse(q) => {
                         // If both ComSel responses are in the same round, their committees must be equal
-                        (p.r == q.r) implies { // WRONG: log_entry1.time == log_entry2.time 
+                        (p.r == q.r) implies {
                             p.com == q.com
                         }
                     }

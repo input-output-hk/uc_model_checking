@@ -76,29 +76,46 @@ module p_bridge_inizk{
         sys.ledger1.input.filterMap(z => match z { | APLResponse(p) => Some(p) | _ => None }).map(p => {
             sys.brd.handles.filterMap(z => match z {| CertifyAPLWait(q) => Some(q) | _ => None
             }).filter(q => p.cfg == q.cfg).map(q => {
-                val brd_trans = {
-                    post_state: sys.brd.state,
-                    effects: Set(
-                        BRD_UpdateInput(Set()),
-                        BRD_RemoveHandle(CertifyAPLWait(q)),
-                        BRD_AppendHandle(CertifyHashWait({cfg: q.cfg, rot: q.rot, x: q.x, L1: q.L1, apl: p.p}))
-                    )
+                val bstP = sys.brd.state.bst.get(q.cfg.party)
+                if (bstP.h == None or bstP.apl == None) {
+                    // Bridge hasn't committed a hash yet; certify returns no proof
+                    Set({...sys.brd_id_ctrans(),
+                        brd: {
+                            post_state: sys.brd.state,
+                            effects: Set(
+                                BRD_UpdateInput(Set(CertifyResponse({cfg: q.cfg, rot: q.rot, x: q.x, L1: q.L1, apl: p.p, h: 0, res: None, r: sys.clock.state.TIME}))),
+                                BRD_RemoveHandle(CertifyAPLWait(q))
+                            )
+                        },
+                        ledger1: sys.ledger1.led_skip_trans()
+                    })
+                } else {
+                    val h = bstP.h.unwrap()
+                    val apl = bstP.apl.unwrap()
+                    val L = q.L1.slice(0, apl)
+
+                    val brd_trans = {
+                        post_state: sys.brd.state,
+                        effects: Set(
+                            BRD_UpdateInput(Set()),
+                            BRD_RemoveHandle(CertifyAPLWait(q)),
+                            BRD_AppendHandle(CertifyProveWait({cfg: q.cfg, rot: q.rot, x: q.x, L1: q.L1, apl: apl, h: h}))
+                        )
+                    }
+
+                    val nizk_trans = {
+                        post_state: sys.nizk.state,
+                        effects: Set(
+                            NIZK_UpdateInput(Set(NIZK_ProveRequest({cfg: p.cfg, x: {x: q.x, h: h}, w: L})))
+                        )
+                    }
+
+                    Set({...sys.brd_id_ctrans(),
+                        brd: brd_trans,
+                        ledger1: sys.ledger1.led_skip_trans(),
+                        nizk: nizk_trans
+                    })
                 }
-
-                val L = q.L1.slice(0,p.p)
-
-                val hash_trans = {
-                    post_state: sys.hash.state,
-                    effects: Set(
-                        HASH_UpdateInput(Set(HashRequest({cfg: p.cfg, x: L})))
-                    )
-                }
-
-                Set({...sys.brd_id_ctrans(),
-                    brd: brd_trans,
-                    ledger1: sys.ledger1.led_skip_trans(),
-                    hash: hash_trans
-                })
             }).flatten()
         }).flatten()
     }

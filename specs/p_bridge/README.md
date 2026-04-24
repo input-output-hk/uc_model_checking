@@ -94,3 +94,50 @@ The following bugs were fixed to make the simulation reach a stable point where 
 ### specs/g_ledger/g_ledger_types.qnt
 
 **Fix 15 — commented-out helper**: `led_get_submit_response_messages` was commented out but used by `p_bridge_testing.qnt`. Uncommented.
+
+## Code Cleanup Applied
+
+The following cleanup was applied after the bug fixes to improve specification quality.
+
+### p_bridge_types.qnt
+
+- **`BRD_AUX` type corrected**: `type BRD_AUX = {bvks: List[BRD_BVK], com: Committee}` was stale — `aux`/`aux_prim` fields use `Party -> BRD_BVK` (a Map). Updated to `{bvks: Party -> BRD_BVK, com: Committee}` to match actual usage.
+- **Removed dead commented-out import**: `//import f_sig_types.* from "../f_sig/f_sig_types"` removed.
+- **Removed dead `//btx1: Option[LED_Tx]`**: Stale removed-field comment in `BRD_BR_Resp` removed.
+- **Removed commented-out `BRD_SystemParams` fields**: `//P1`, `//P2`, `//t` field stubs removed.
+- **Cleaned `brd_id_ctrans` body**: Removed stale 6-line commented-out block in `brd_id_ctrans`.
+
+### p_bridge_br.qnt
+
+- **`brd_br_5_case5` guard extended**: Added `bst.aux_prim == None` to the prerequisite guard. If `aux_prim` hasn't been set by case3, case5 now correctly skips rather than proceeding to set `aux: None` in the success branch of case5_2.
+- **Removed all `//btx1: None` dead comments**: 6 occurrences removed throughout the file.
+
+### p_bridge_env.qnt
+
+- **Removed stale TODO**: Removed `//TODO: enable_logging: false, responsive_simulator: true` from `brd_init` call — `brd_init` does not support those parameters.
+
+### g_ledger/g_ledger_properties.qnt
+
+- **Removed misleading `// WRONG` comment**: `(p.r == q.r) implies { // WRONG: log_entry1.time == log_entry2.time` — the current `p.r == q.r` check IS correct. `ComSelResponse.r` is set to `clock.state.TIME` at request time (via `ComSelSIMHold`), so `p.r == q.r` correctly checks agreement at the same request time. Comment removed.
+
+### Bridge_State_Persistence fix (p_bridge_properties.qnt)
+
+**Fix 16 — cross-period comparison**: `Bridge_State_Persistence` used `p.args.r + R < q.args.r` (strict inequality spanning periods). This allowed comparing rounds from different rotation periods where `h` legitimately differs (fresh Merkle root each period). Fixed by replacing the cross-period condition with `p.args.r / R == q.args.r / R` (same period via integer division), ensuring only within-period stability is checked.
+
+### Committee canonicalization (g_ledger_comsel.qnt)
+
+**Fix 17 — non-canonical committee ordering**: `led_comsel_clean` allowed the same committee as `[1,2]` in one period and `[2,1]` in another. List equality is order-sensitive, so `Bridge_Aux_Update` and `Bridge_State_Persistence` would falsely fail when comparing `aux.com` across periods. Fixed by adding `com.indices().forall(i => i == 0 or com[i-1] < com[i])` (canonical ascending order).
+
+### Bridge_Liveness fix (p_bridge_inizk.qnt, p_bridge_types.qnt, p_bridge_br.qnt)
+
+**Fix 18 — certify computes independent hash**: `brd_certify_3` computed `hash(L1_certify[0..APL_certify])` fresh at certify time. Because the adversary controls ledger reads, this hash could differ from `bst.h` (computed by the bridge at the rotation round and committed to ledger2). The verify check `mem.hs.listHas(proof.h)` then always failed.
+
+Root cause: certify and bridge independently read ledger1, potentially seeing different prefixes/APL values from the adversarial simulator.
+
+Fix: added `apl: Option[int]` field to `BRD_BST_Entry`; `brd_br_5_case3_6` now stores `bst.apl = Some(q.apl)` alongside `bst.h`; `brd_certify_3` now reads `bst.h`/`bst.apl` from the bridge state and uses them directly (skipping the fresh hash request). If `bst.h == None` (bridge hasn't run case3 yet), certify returns `res = None` (no proof), making the liveness precondition false and avoiding a spurious violation.
+
+### Bridge_Soundness fix (g_ledger/g_ledger_apl.qnt)
+
+**Fix 19 — non-monotone APL allows soundness violation**: `led_apl_san` allowed the adversary to set a lower APL value at a later round (e.g., `APL.get(8)=2` → `APL.get(12)=1`) because `led_apl_Clean` only constrains APL to `[max(min_ptr-delta, 0), min_ptr]`, not to be non-decreasing. `Bridge_Soundness` uses `APL.get(r_verify)` as the prefix bound, but the NIZK proof was certified using `bst.apl = APL.get(r_rotation)`. If `APL.get(r_verify) < bst.apl`, a tx at index ≥ APL_verify but < bst.apl (legitimately proven by NIZK) is not in `L1[0..APL_verify]` → soundness violation.
+
+Fix: `led_apl_san` now computes `prev_max = max of all existing APL values` and enforces the new APL ≥ `prev_max`. This makes APL monotone: once finalization reaches pointer k, it never retreats. With monotone APL, `APL.get(r_verify) ≥ APL.get(r_rotation) = bst.apl`, so any tx proven by NIZK to be in `L1[0..bst.apl]` is also in `L1[0..APL.get(r_verify)]`.

@@ -50,11 +50,13 @@ module g_ledger_comsel{
 
     pure def led_comsel_clean(com: List[CommitteeMember], params: LED_SystemParams) : bool = {
         all{
-            com.length() == params.comsel_c, 
+            com.length() == params.comsel_c,
+            com.toSet().size() == com.length(),  // all members distinct
+            com.indices().forall(i => i == 0 or com[i-1] < com[i]),  // canonical ascending order
             com.toSet().forall(m => m.in(params.P)),
-            params.comsel_b * com.listFilter(m => m.in(params.C)).length() <= params.comsel_a * com.length()             
+            params.comsel_b * com.listFilter(m => m.in(params.C)).length() <= params.comsel_a * com.length()
         }
-    }     
+    }
 
     pure def led_comsel_2(led: LED_System, clock: GC_System, sim_com: List[CommitteeMember]) : Set[(LED_Transition, GC_Transition)] = {
         led.input.filterMap(m => match m {

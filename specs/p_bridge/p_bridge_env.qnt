@@ -411,7 +411,7 @@ module p_bridge_env{
             pki_init({P: x.P, SIDs: x.SIDs, enable_logging: false, responsive_simulator: true}),
             gc_init({C: x.C, time: r0, Reg: all_parties_at_all_sids(x.P, x.SIDs), enable_logging: false, responsive_simulator: true}),
             dif_init({P : x.P, C:  x.C, SIDs: x.SIDs, delta:delta, enable_logging: false, responsive_simulator: true}),
-            brd_init({P : x.P, C : x.C, SIDs: x.SIDs, r0: r0, delta: delta, R: R, }), //TODO: enable_logging: false, responsive_simulator: true
+            brd_init({P : x.P, C : x.C, SIDs: x.SIDs, r0: r0, delta: delta, R: R, }),
             atms_init({P : x.P, C : x.C, SIDs: x.SIDs, t: (t-1), enable_logging: false, responsive_simulator: true}),
             g_ledger_s' = led_initial({P: x.P, C: x.C, SIDs: x.SIDs, delta_latency: x.delta_latency, delta_slack: x.delta_slack, delta_apl: x.delta_apl, Val: true, comsel_a: x.comsel_a, comsel_b: x.comsel_b, comsel_c: x.comsel_c, enable_logging: false, responsive_simulator: true}),
             g_ledger_s2' = led_initial({P: x.P, C: x.C, SIDs: x.SIDs, delta_latency: x.delta_latency, delta_slack: x.delta_slack, delta_apl: x.delta_apl, Val: true, comsel_a: x.comsel_a, comsel_b: x.comsel_b, comsel_c: x.comsel_c, enable_logging: false, responsive_simulator: true}),

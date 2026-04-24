@@ -95,9 +95,27 @@ module p_bridge_properties{
     }
 
     // ====== Co-Properties (must fail) ======
+    // Each Qn should be violated by a healthy simulation. Holding means the model
+    // can't reach that milestone and something is broken.
 
+    // Any log entry produced (trivial progress check).
     val Q1 = p_bridge_s.log.size() <= 1
+
+    // Phase 1 — BKGen: a validator key is generated for any party.
+    val Q3 = p_bridge_s.log.map(x => x.msg).filterMap(z => match z {
+        | BKGenResponse(_) => Some(true) | _ => None
+    }).size() == 0
+
+    // Phase 2 — RoT: RoT completes for party 1.
     val Q2 = p_bridge_s.state.bst.get(1).rot == None
+
+    // Phase 3 — BRAlgorithm: bridge rotation commits a hash for party 1 (case3_6 fired).
+    val Q4 = p_bridge_s.state.bst.get(1).h == None
+
+    // Phase 4 — Certify: certify produces a valid proof (res != None) for some request.
+    val Q5 = p_bridge_s.log.map(x => x.msg).brd_get_certify_response_messages().forall(p => p.res == None)
+
+    // Phase 5 — Verify: at least one successful verify response.
     val Q6 = p_bridge_s.log.map(x => x.msg).brd_get_verify_response_messages().filter(x => x.res == true).size() == 0
     // (VIOLATED) Bridge democracy: 
     // For all rounds r and all parties P, we have 
@@ -177,18 +195,20 @@ module p_bridge_properties{
                 p.cfg.party == q.cfg.party,
                 p.args.r + p_bridge_s.params.R + p_bridge_s.params.delta + 2 == q.args.r,
                 p.resp.bst != None,
-                q.resp.bst != None
+                q.resp.bst != None,
+                p.resp.bst.unwrap().aux_prim != None,  // exclude warmup rounds before first rotation
             } implies {
                 val p_bst = p.resp.bst.unwrap()
                 val q_bst = q.resp.bst.unwrap()
-                p_bst.aux == q_bst.aux_prim
+                q_bst.aux == p_bst.aux_prim  // aux at r+R+delta+2 equals aux_prim prepared at r
             }
         )
     )
 
 
-    // Bridge state persistence: For all rounds r and r’ and all parties P,  we have 
-    // bst[P].(rot, cID, h, avk’, aux, aux’) @ r = bst[P].(rot, cID, h, avk’, aux, aux’) @ r’ as long as  1 ≤ (r % R),  (r’ % R) ≤ ∆ + 1; 
+    // Bridge state persistence: For all rounds r and r’ in the same rotation period and all parties P,
+    // bst[P].(rot, cID, h, avk’, aux, aux’) @ r = bst[P].(rot, cID, h, avk’, aux, aux’) @ r’
+    // as long as 1 ≤ (r % R), (r’ % R) ≤ ∆ + 1 and floor(r/R) == floor(r’/R) (same period).
     val Bridge_State_Persistence = p_bridge_s.log.map(x => x.msg).filterMap(z => match z {
         | BridgeBRAlgorithmResponse(p) => Some(p)
         | _ => None
@@ -199,15 +219,18 @@ module p_bridge_properties{
         }).forall(q =>
             and {
                 p.cfg.party == q.cfg.party,
-                p.args.r % p_bridge_s.params.R >= 1, 
-                q.args.r % p_bridge_s.params.R >= 1, 
+                p.args.r % p_bridge_s.params.R >= 1,
+                q.args.r % p_bridge_s.params.R >= 1,
 
                 p.args.r % p_bridge_s.params.R <= p_bridge_s.params.delta + 1,
                 q.args.r % p_bridge_s.params.R <= p_bridge_s.params.delta + 1,
-                
+
+                // same rotation period: h and other fields update each period, so cross-period comparison is invalid
+                p.args.r / p_bridge_s.params.R == q.args.r / p_bridge_s.params.R,
+
                 p.resp.bst != None,
                 q.resp.bst != None,
-                p.args.r + p_bridge_s.params.R < q.args.r,
+                p.resp.bst.unwrap().aux_prim != None,  // exclude warmup rounds before first rotation
             } implies {
                 val p_bst = p.resp.bst.unwrap()
                 val q_bst = q.resp.bst.unwrap()
