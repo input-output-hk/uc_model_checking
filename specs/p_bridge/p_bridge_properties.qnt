@@ -57,9 +57,15 @@ module p_bridge_properties{
             delta_latency: 2, 
             delta_slack: 2, 
             delta_apl: 2, 
-            comsel_a: 2, 
-            comsel_b: 2, 
-            comsel_c: 2})        
+            // comsel_c: committee size; comsel_a/comsel_b: corruption fraction bound on the committee
+            //   (comsel_b * #corrupted_in_committee <= comsel_a * comsel_c).
+            // comsel_a=1, comsel_b=2 enforces honest majority (< 1/2 corrupted in committee).
+            // For Bridge_Aux_Update to hold, the committee must have >= t honest members,
+            //   so comsel_c - floor(comsel_a/comsel_b * comsel_c) >= t, i.e. comsel_c >= t + |C|.
+            // With t=2 and |C|=1, comsel_c >= 3 is required.
+            comsel_a: 1,
+            comsel_b: 2,
+            comsel_c: 3})
         // p_bridge_env_init({
         //     P: Parties, 
         //     SIDs: SIDs, 
@@ -191,6 +197,7 @@ module p_bridge_properties{
             | _ => None
         }).forall(q =>
             and {
+                not(p.cfg.party.in(p_bridge_s.params.C)),  // only check for honest parties (corrupted parties can deviate arbitrarily and break the property, but that doesn't mean the property is false or the model is broken)
                 p.cfg.party == q.cfg.party,
                 p.args.r % p_bridge_s.params.R == 0,   // p must be a case3 round
                 p.args.r + p_bridge_s.params.R == q.args.r,
