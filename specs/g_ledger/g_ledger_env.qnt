@@ -46,8 +46,9 @@ module g_ledger_env {
             }
         }else{
             all {
-                env_consume_responses,  
-                f_atms_s' = f_atms_s
+                g_ledger_s' = g_ledger_s,
+                g_clock_s' = g_clock_s,
+                f_atms_s' = f_atms_s,
             }
         }
     }
@@ -83,13 +84,13 @@ module g_ledger_env {
    }        
   
     action init = all {
-        led_init({P: Parties, C: C, SIDs: sids, delta_latency: delta_latency, delta_slack: delta_slack, delta_apl: delta_apl, Val:  true, comsel_a: 1, comsel_b: 1, comsel_c: 2, responsive_simulator: true, enable_logging: true}),
-        gc_init({C: C,time: 0, Reg: Parties.map(x => sids.map(y => {party: x, sid: y})).flatten(), responsive_simulator: true, enable_logging: false} ),
+        led_init({P: Parties, C: C, SIDs: sids, delta_latency: delta_latency, delta_slack: delta_slack, delta_apl: delta_apl, Val:  true, comsel_a: 1, comsel_b: 1, comsel_c: 2, responsive_simulator: RESPONSIVE_SIMULATOR, enable_logging: true}),
+        gc_init({C: C,time: 0, Reg: Parties.map(x => sids.map(y => {party: x, sid: y})).flatten(), responsive_simulator: RESPONSIVE_SIMULATOR, enable_logging: false} ),
         atms_init({P : Parties, 
         C : C, 
         SIDs: sids, 
         t: (atms_t - 1),
-        responsive_simulator: true,
+        responsive_simulator: RESPONSIVE_SIMULATOR,
         enable_logging: false,}),
     }
 

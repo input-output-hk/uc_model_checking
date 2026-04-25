@@ -348,7 +348,7 @@ module f_ac{
             fac_fetch_3(sys,clock),
             fac_ok_1(sys, clock),
             fac_ok_2(sys, clock),
-            f_ac_sim_loses_ctrl(sys, clock)
+            if (sys.params.responsive_simulator) Set() else f_ac_sim_loses_ctrl(sys, clock)
         ).flatten()
         
     }
@@ -388,13 +388,15 @@ module f_ac{
     }
     
 
-    pure def fac_initial(P: Set[Party], C: Set[Party], delta: Time, SIDs: Set[SID]) : FAC_System = {
+    pure def fac_initial(P: Set[Party], C: Set[Party], delta: Time, SIDs: Set[SID], responsive_simulator: bool, enable_logging: bool) : FAC_System = {
         {
             params : {
                 P : P,
                 C : C,
                 delta: delta,
                 SIDs: SIDs,
+                responsive_simulator: responsive_simulator,
+                enable_logging: enable_logging,
             },
             state : SIDs.mapBy(sid => {
                 {
@@ -411,9 +413,9 @@ module f_ac{
         }        
     }
 
-    action fac_init(P: Set[Party], C: Set[Party], delta: Time, SIDs: Set[SID]) : bool =  all {
+    action fac_init(P: Set[Party], C: Set[Party], delta: Time, SIDs: Set[SID], responsive_simulator: bool, enable_logging: bool) : bool =  all {
         C.subseteq(P),
-        f_ac_s' = fac_initial(P, C, delta, SIDs)
+        f_ac_s' = fac_initial(P, C, delta, SIDs, responsive_simulator, enable_logging)
     }
 
 }

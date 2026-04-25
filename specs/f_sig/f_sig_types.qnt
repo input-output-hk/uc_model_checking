@@ -31,12 +31,13 @@ module f_sig_types {
     type SIG_SystemParams = {
         P: Set[Party],
         C: Set[Party],
-        SIDs: Set[SID], 
-        S: Set[Party], 
+        SIDs: Set[SID],
+        S: Set[Party],
 
         ALL_VKs: Set[SIG_VK],
         ALL_SIGs: Set[SIG_Signature],
-    }        
+        responsive_simulator: bool,
+    }
 
     type SIG_StateVars = SID -> 
         {

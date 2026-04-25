@@ -24,7 +24,7 @@ module g_clock_properties {
     }
 
     action init = {
-        gc_init({C: C, time: 0, Reg: Set(), responsive_simulator: false, enable_logging: true})
+        gc_init({C: C, time: 0, Reg: Set(), responsive_simulator: RESPONSIVE_SIMULATOR, enable_logging: true})
     }
  
 
@@ -38,25 +38,24 @@ module g_clock_properties {
         nondet sid = SIDs.oneOf()
         val partySID = {party: party, sid: sid}
         val cfg = {nonce: g_clock_s.nonce, party: party, sid: sid}
-        
+
         // Non-deterministically choose one of the three request types
         any {
             // Option 1: RegisterRequest
-            g_clock_s' = {...g_clock_s, 
+            g_clock_s' = {...g_clock_s,
                 input: Set(RegisterRequest({cfg: cfg})),
-                nonce: g_clock_s.nonce + 1
-
+                nonce: g_clock_s.nonce + NONCE_INCREMENT,
             },
             //Option 2: TimeRequest
-            g_clock_s' = {...g_clock_s, 
+            g_clock_s' = {...g_clock_s,
                 input: Set(TimeRequest({cfg: cfg})),
-                nonce: g_clock_s.nonce + 1
+                nonce: g_clock_s.nonce + NONCE_INCREMENT,
             },
 
             // // Option 3: OkayRequest
-            g_clock_s' = {...g_clock_s, 
+            g_clock_s' = {...g_clock_s,
                 input: Set(OkayRequest({cfg: cfg})),
-                nonce: g_clock_s.nonce + 1
+                nonce: g_clock_s.nonce + NONCE_INCREMENT,
             },
         }
     }

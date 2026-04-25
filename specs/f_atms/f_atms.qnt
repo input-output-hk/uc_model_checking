@@ -250,11 +250,18 @@ module f_atms{
             val sid = p.cfg.sid
             val sid_state = atms.state.get(sid)
             val maybe_avk = sid_state.AVK.find(x => x.vks == p.vks) // TODO: make sure that AVK is functional
-            if(maybe_avk != None){
+            // cached Some(x): return it; cached None: re-validate against current state first
+            val use_cache = maybe_avk != None and (
+                maybe_avk.unwrap().avk != None or
+                clean_avk(None, p.vks, sid_state, atms.params.C)
+            )
+            if(use_cache){
+                val cached_avk = if (p.vks.length() < atms.params.t + 1) None
+                    else maybe_avk.unwrap().avk
                 Set({
                     post_state: atms.state,
-                    effects: Set( 
-                        ATMS_UpdateInput(Set(AKeyResponse({cfg: p.cfg, vks: p.vks, avk: maybe_avk.unwrap().avk}))),
+                    effects: Set(
+                        ATMS_UpdateInput(Set(AKeyResponse({cfg: p.cfg, vks: p.vks, avk: cached_avk}))),
                     )
                 })
             }else{

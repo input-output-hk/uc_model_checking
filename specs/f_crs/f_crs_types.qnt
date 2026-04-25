@@ -29,6 +29,7 @@ module f_crs_types {
         P : Set[Party], // parties who can use the functionality
         D : Set[CRS], // set of available CRS
         SIDs: Set[SID], // TODO: is this correct?
+        responsive_simulator: bool,
     }
 
     type CRS_StateVars = SID -> 

@@ -23,11 +23,15 @@ module f_sig_env{
    val ALL_VKs = 1.to(UNIVERSE_SIZE)
    val ALL_SIGs = 1.to(UNIVERSE_SIZE)
 
-    action step : bool = any {
-        sig_step,  
-        env_send_all_reqs,
-        env_consume_responses,
-        env_give_control_to_simulator,
+    action step : bool = if (f_sig_s.log.size() < MAX_LOG_SIZE) {
+        any {
+            sig_step,
+            env_send_all_reqs,
+            env_consume_responses,
+            env_give_control_to_simulator,
+        }
+    } else {
+        f_sig_s' = f_sig_s
     }
 
     pure def env_consume_response(sys: SIG_System) : Set[SIG_Transition] = {
@@ -81,10 +85,9 @@ module f_sig_env{
         // Precondition: input must be empty
         f_sig_s.input.size() == 0,
 
-        f_sig_s' = {...f_sig_s, 
+        f_sig_s' = {...f_sig_s,
             input: Set(SIG_GenRequest({cfg: cfg})),
-            nonce: f_sig_s.nonce + 1
-
+            nonce: f_sig_s.nonce + NONCE_INCREMENT
         }
     }    
 
@@ -98,9 +101,9 @@ module f_sig_env{
 
     action env_sign_reqs_msg(cfg: MsgConfig, msg: SIG_Document) : bool = all {
         // Precondition: input must be empty
-        f_sig_s' = {...f_sig_s, 
+        f_sig_s' = {...f_sig_s,
             input: Set(SIG_SignRequest({cfg: cfg, m: msg})),
-            nonce: f_sig_s.nonce + 1
+            nonce: f_sig_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -116,9 +119,9 @@ module f_sig_env{
     }
 
     action env_verify_reqs_args(cfg: MsgConfig, vk: SIG_VK, m: SIG_Document, sig: SIG_Signature) : bool = all {
-        f_sig_s' = {...f_sig_s, 
-            input: Set(SIG_VerifyRequest({cfg: cfg, vk: vk, m: m, sig: sig}) ),
-            nonce: f_sig_s.nonce + 1
+        f_sig_s' = {...f_sig_s,
+            input: Set(SIG_VerifyRequest({cfg: cfg, vk: vk, m: m, sig: sig})),
+            nonce: f_sig_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -132,7 +135,7 @@ module f_sig_env{
     
 
     action init = all {
-        sig_init(Parties, Corrupted, sids, Signers, ALL_VKs, ALL_SIGs),
-    }    
+        sig_init(Parties, Corrupted, sids, Signers, ALL_VKs, ALL_SIGs, RESPONSIVE_SIMULATOR),
+    }
 
 }

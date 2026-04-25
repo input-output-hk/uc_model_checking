@@ -9,16 +9,23 @@ module f_ac_env{
     import f_ac.*  from "./f_ac"
 
   
-    val Parties = Set(1,2)
-    val Corrupted = Set()
-    val sids = Set(1)
-    val delta_param: int = 2   
+    val Parties = 1.to(PARTY_SIZE)
+    val Corrupted = 1.to(CORRUPTED_PARTY_SIZE)
+    val sids = 1.to(SID_SIZE)
+    val delta_param: int = 2
 
-    action step : bool = any {
-        fac_step,  
-        gc_step_fac_wait,
-        env_fac_send_all_reqs,
-        env_consume_responses,
+    action step : bool = if (f_ac_s.log.size() < MAX_LOG_SIZE) {
+        any {
+            fac_step,
+            gc_step_fac_wait,
+            env_fac_send_all_reqs,
+            env_consume_responses,
+        }
+    } else {
+        all {
+            f_ac_s' = f_ac_s,
+            g_clock_s' = g_clock_s,
+        }
     }
 
     action gc_step_fac_wait : bool =  all {
@@ -30,8 +37,8 @@ module f_ac_env{
         val clock_regs = sids.map(sid => Parties.map(party => ({party: party, sid: sid}))).flatten()
 
         all {
-            fac_init(Parties, Corrupted, delta_param, sids),
-            gc_init({C: Corrupted, time: 0, Reg: clock_regs, responsive_simulator: false, enable_logging: false})
+            fac_init(Parties, Corrupted, delta_param, sids, RESPONSIVE_SIMULATOR, true),
+            gc_init({C: Corrupted, time: 0, Reg: clock_regs, responsive_simulator: RESPONSIVE_SIMULATOR, enable_logging: false})
         }
     }
 
@@ -58,10 +65,10 @@ module f_ac_env{
         g_clock_s.input.size() == 0 and f_ac_s.input.size() == 0,
         
         // Non-deterministically choose a party and SID
-        nondet data = Set(42,43,44,45).oneOf()
+        nondet data = 1.to(UNIVERSE_SIZE).oneOf()
         f_ac_s' = {...f_ac_s, 
             input: Set(SendRequest({cfg: cfg, Q: top, x: data})),
-            nonce: f_ac_s.nonce + 1
+            nonce: f_ac_s.nonce + NONCE_INCREMENT
 
         },
         gc_stutter
@@ -77,7 +84,7 @@ module f_ac_env{
         // Option 2: Fetch
         f_ac_s' = {...f_ac_s, 
             input: Set(FetchRequest({cfg: cfg})),
-            nonce: f_ac_s.nonce + 1
+            nonce: f_ac_s.nonce + NONCE_INCREMENT
 
         },
         gc_stutter   
@@ -90,7 +97,7 @@ module f_ac_env{
         // Option 3: OK
         f_ac_s' = {...f_ac_s, 
             input: Set(OKRequest({cfg: cfg})),
-            nonce: f_ac_s.nonce + 1
+            nonce: f_ac_s.nonce + NONCE_INCREMENT
 
         },   
         gc_stutter     
@@ -100,7 +107,7 @@ module f_ac_env{
         g_clock_s.input.size() == 0 and f_ac_s.input.size() == 0,
         f_ac_s' = {...f_ac_s, 
             input: Set(SIMControl),
-            nonce: f_ac_s.nonce + 1
+            nonce: f_ac_s.nonce + NONCE_INCREMENT
 
         },
         gc_stutter
@@ -110,7 +117,7 @@ module f_ac_env{
         g_clock_s.input.size() == 0 and f_ac_s.input.size() == 0,
         g_clock_s' = {...g_clock_s, 
             input: Set(GC_SIMControl),
-            nonce: g_clock_s.nonce + 1
+            nonce: g_clock_s.nonce + NONCE_INCREMENT
         },
         f_ac_s' = f_ac_s,
     }

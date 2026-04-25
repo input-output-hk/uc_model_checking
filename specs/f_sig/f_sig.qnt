@@ -311,10 +311,10 @@ module f_sig{
             //sig_verify_2(sig),
             sig_verify_3(sig),
 
-            sig_sim_loses_ctrl(sig),
-            
+            if (sig.params.responsive_simulator) Set() else sig_sim_loses_ctrl(sig),
+
         ).flatten()
-    }        
+    }
 
     def sig_process_transitions(sys: SIG_System, transition: SIG_Transition) : SIG_System = {
         val new_sys = {...sys, state: transition.post_state}
@@ -341,7 +341,7 @@ module f_sig{
     }        
 
 
-   action sig_init(P: Set[Party], C: Set[Party],SIDs: Set[SID], S: Set[Party], ALL_VKs: Set[SIG_VK], ALL_SIGs: Set[SIG_Signature]) : bool =  all {
+   action sig_init(P: Set[Party], C: Set[Party], SIDs: Set[SID], S: Set[Party], ALL_VKs: Set[SIG_VK], ALL_SIGs: Set[SIG_Signature], responsive_simulator: bool) : bool =  all {
         C.subseteq(P),
         S.subseteq(P),
 
@@ -354,6 +354,7 @@ module f_sig{
 
                 ALL_VKs: ALL_VKs,
                 ALL_SIGs: ALL_SIGs,
+                responsive_simulator: responsive_simulator,
             },
             state : SIDs.mapBy(sid => {
                 VK: Set(),
@@ -364,6 +365,6 @@ module f_sig{
             log : Set(),
             handles : Set(),
         }
-    }    
+    }
 
 }

@@ -34,7 +34,9 @@ module f_ac_types {
         C : Set[Party], // corrupted parties
         delta: Time,
         SIDs: Set[SID],
-    } 
+        responsive_simulator: bool,
+        enable_logging: bool,
+    }
 
     type FAC_StateVars = SID -> 
         {

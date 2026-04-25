@@ -16,11 +16,18 @@ module f_dif_env{
     val delta_param: int = 1
 
 
-    action step : bool = any {
-        dif_step,  
-        gc_step_fac_wait,
-        env_fac_send_all_reqs,
-        env_consume_responses,
+    action step : bool = if (f_dif_s.log.size() < MAX_LOG_SIZE) {
+        any {
+            dif_step,
+            gc_step_fac_wait,
+            env_fac_send_all_reqs,
+            env_consume_responses,
+        }
+    } else {
+        all {
+            f_dif_s' = f_dif_s,
+            g_clock_s' = g_clock_s,
+        }
     }
 
     action gc_step_fac_wait : bool =  all {
@@ -31,20 +38,23 @@ module f_dif_env{
     action init = {
         val clock_regs = sids.map(sid => Parties.map(party => ({party: party, sid: sid}))).flatten()
         all{
-            dif_init({P: Parties, C: Corrupted, SIDs: sids, delta: delta_param, enable_logging: true, responsive_simulator: true}),
-            gc_init({C: Corrupted,time: 0, Reg: clock_regs, responsive_simulator: true, enable_logging: false}),
+            dif_init({P: Parties, C: Corrupted, SIDs: sids, delta: delta_param, enable_logging: true, responsive_simulator: RESPONSIVE_SIMULATOR}),
+            gc_init({C: Corrupted, time: 0, Reg: clock_regs, responsive_simulator: RESPONSIVE_SIMULATOR, enable_logging: false}),
         }
     }
 
     action env_fac_send_all_reqs : bool = all {
         nondet from = Parties.oneOf()
-        nondet corrupted = Corrupted.oneOf()
         nondet top = Parties.oneOf()
         nondet sid = sids.oneOf()
 
         any {
             env_dif_send_reqs(from, top, sid),
-            env_dif_inject_reqs(corrupted, top, sid),
+            all {
+                Corrupted.size() > 0,
+                nondet corrupted = Corrupted.oneOf()
+                env_dif_inject_reqs(corrupted, top, sid),
+            },
             env_dif_fetch_reqs(from, sid),
             env_ok_reqs(from, sid),
             env_dif_sim_reqs,
@@ -61,10 +71,9 @@ module f_dif_env{
         // Non-deterministically choose a party and SID
         nondet data = 1.to(UNIVERSE_SIZE).oneOf()
         val cfg = {party: from, sid: sid, nonce: f_dif_s.nonce}
-        f_dif_s' = {...f_dif_s, 
+        f_dif_s' = {...f_dif_s,
             input: Set(DIF_DiffuseRequest({cfg: cfg, m: {party: from, avk: top, sig: data}})),
             nonce: f_dif_s.nonce + 1
-
         },
         gc_stutter
     }
@@ -73,14 +82,13 @@ module f_dif_env{
     action env_dif_inject_reqs(from:Party, top: Party, sid: SID) : bool = all {
         // Precondition: input must be empty
         g_clock_s.input.size() == 0 and f_dif_s.input.size() == 0,
-        
+
         // Non-deterministically choose a party and SID
         nondet data = 1.to(UNIVERSE_SIZE).oneOf()
         val cfg = {party: from, sid: sid, nonce: f_dif_s.nonce}
-        f_dif_s' = {...f_dif_s, 
+        f_dif_s' = {...f_dif_s,
             input: Set(DIF_InjectRequest({cfg: cfg, Q: top, m: {party: from, avk: top, sig: data}})),
             nonce: f_dif_s.nonce + 1
-
         },
         gc_stutter
     }
@@ -90,41 +98,39 @@ module f_dif_env{
     action env_dif_fetch_reqs(from:Party, sid: SID) : bool = all {
         // Precondition: input must be empty
         g_clock_s.input.size() == 0 and f_dif_s.input.size() == 0,
-        
+
         // Non-deterministically choose a party and SID
         val cfg = {party: from, sid: sid, nonce: f_dif_s.nonce}
 
         // Option 2: Fetch
-        f_dif_s' = {...f_dif_s, 
+        f_dif_s' = {...f_dif_s,
             input: Set(DIF_FetchRequest({cfg: cfg})),
             nonce: f_dif_s.nonce + 1
-
         },
-        gc_stutter   
+        gc_stutter
     }
 
     action env_ok_reqs(from:Party, sid: SID) : bool = all {
         // Precondition: input must be empty
         g_clock_s.input.size() == 0 and f_dif_s.input.size() == 0,
-        
+
         // Non-deterministically choose a party and SID
         val cfg = {party: from, sid: sid, nonce: f_dif_s.nonce}
 
         // Option 3: OK
-        f_dif_s' = {...f_dif_s, 
+        f_dif_s' = {...f_dif_s,
             input: Set(DIF_OKRequest({cfg: cfg})),
             nonce: f_dif_s.nonce + 1
-
-        },   
-        gc_stutter     
+        },
+        gc_stutter
     }
 
     action env_dif_sim_reqs : bool = all {
-        g_clock_s.input.size() == 0, 
+        g_clock_s.input.size() == 0,
         f_dif_s.input.size() == 0,
         f_dif_s.handles.size() > 0,
 
-        f_dif_s' = {...f_dif_s, 
+        f_dif_s' = {...f_dif_s,
             input: Set(DIF_SIMControl),
             nonce: f_dif_s.nonce + 1
         },
@@ -132,11 +138,11 @@ module f_dif_env{
     }
 
     action env_gc_sim_reqs : bool = all {
-        g_clock_s.input.size() == 0, 
+        g_clock_s.input.size() == 0,
         f_dif_s.input.size() == 0,
         g_clock_s.handles.size() > 0,
 
-        g_clock_s' = {...g_clock_s, 
+        g_clock_s' = {...g_clock_s,
             input: Set(GC_SIMControl),
             nonce: g_clock_s.nonce + 1
         },

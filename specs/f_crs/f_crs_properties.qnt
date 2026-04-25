@@ -9,15 +9,19 @@ module f_crs_properties{
     val sids = Set(4,5)
     val D = Set(1001,1002,1003)
 
-    action step : bool = any {
-        crs_step,  
-        env_crs_send_all_reqs,
-        env_consume_responses,
-    }    
+    action step : bool = if (crs_s.log.size() < MAX_LOG_SIZE) {
+        any {
+            crs_step,
+            env_crs_send_all_reqs,
+            env_consume_responses,
+        }
+    } else {
+        crs_s' = crs_s
+    }
 
 
     action init = all {
-        crs_init(Parties, D, sids),
+        crs_init(Parties, D, sids, RESPONSIVE_SIMULATOR),
     }
 
     action env_crs_send_all_reqs : bool = all {
@@ -29,9 +33,9 @@ module f_crs_properties{
         nondet sid = sids.oneOf()
         val cfg = {party: from, sid: sid, nonce: crs_s.nonce}
 
-        crs_s' = {...crs_s, 
+        crs_s' = {...crs_s,
             input: Set(GenRequest({cfg: cfg})),
-            nonce: crs_s.nonce + 1
+            nonce: crs_s.nonce + NONCE_INCREMENT
         },
     }
 
@@ -75,10 +79,10 @@ val CRS_same =  crs_s.log.forall(log_entry1 => {
 // must fail (CRS might be different for two different SIDs)
 val CRS_different =  crs_s.log.forall(log_entry1 => {
     match log_entry1.msg {
-        | GenResponse(p1) => 
+        | GenResponse(p1) =>
             crs_s.log.forall(log_entry2 => {
                 match log_entry2.msg {
-                    | GenResponse(p2) => 
+                    | GenResponse(p2) =>
                         p1.crs == p2.crs
                     | _ => true
                 }
@@ -86,5 +90,9 @@ val CRS_different =  crs_s.log.forall(log_entry1 => {
         | _ => true
     }
 })
+
+    val AllProps = all {
+        CRS_same,
+    }
 
 }

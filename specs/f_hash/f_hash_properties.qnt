@@ -10,16 +10,20 @@ module f_hash_properties{
     val sids = 1.to(SID_SIZE)
     
     // STEP function
-    action step : bool = any {
-        hash_step,  
-        env_hash_send_all_reqs,
-        env_consume_responses,
-        env_hash_sim_reqs,
-    }    
+    action step : bool = if (f_hash_s.log.size() < MAX_LOG_SIZE) {
+        any {
+            hash_step,
+            env_hash_send_all_reqs,
+            env_consume_responses,
+            env_hash_sim_reqs,
+        }
+    } else {
+        f_hash_s' = f_hash_s
+    }
 
     // INIT function
     action init = all {
-        hash_init({P: Parties, SIDs: sids, responsive_simulator: true, enable_logging: true}),
+        hash_init({P: Parties, SIDs: sids, responsive_simulator: RESPONSIVE_SIMULATOR, enable_logging: true}),
     }
 
     // environment gives control to the simulator
@@ -28,7 +32,7 @@ module f_hash_properties{
         f_hash_s.handles.size() > 0,
         f_hash_s' = {...f_hash_s, 
             input: Set(HASH_SIMControl),
-            nonce: f_hash_s.nonce + 1
+            nonce: f_hash_s.nonce + NONCE_INCREMENT
         }
     }       
 
@@ -47,7 +51,7 @@ module f_hash_properties{
             all {
                 f_hash_s' = {...f_hash_s,
                     input: Set(HashRequest({cfg: cfg, x: List(Normal({tx: x, b: true})) })),
-                    nonce: f_hash_s.nonce + 1
+                    nonce: f_hash_s.nonce + NONCE_INCREMENT
                 }
             }
         }

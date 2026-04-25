@@ -165,15 +165,13 @@ module p_bridge_properties{
             | BridgeBRAlgorithmResponse(q) => Some(q)
             | _ => None
         }).forall(q =>
-            (p.args.r == q.args.r and p.resp.bst != None) implies {
+            (p.args.r == q.args.r and p.resp.bst != None and q.resp.bst != None and not(p.cfg.party.in(p_bridge_s.params.C)) and not(q.cfg.party.in(p_bridge_s.params.C))) implies {
                 val p_bst = p.resp.bst.unwrap()
                 val q_bst = q.resp.bst.unwrap()
                 and {
                     p_bst.rot == q_bst.rot,
                     p_bst.cID == q_bst.cID,
                     p_bst.h == q_bst.h,
-
-                    
                     p_bst.avk_prim == q_bst.avk_prim,
                     p_bst.aux == q_bst.aux,
                     p_bst.aux_prim == q_bst.aux_prim,

@@ -30,7 +30,10 @@ module f_inizk_env{
                 env_consume_responses,
             }
         } else {
-            env_consume_responses
+            all {
+                f_nizk_s' = f_nizk_s,
+                f_hash_s' = f_hash_s,
+            }
         }
     }
 
@@ -88,7 +91,7 @@ module f_inizk_env{
     action env_prove_reqs_args(cfg: MsgConfig, x: NIZK_Statement, w: NIZK_Witness) : bool = all {
         f_nizk_s' = {...f_nizk_s, 
             input: Set(NIZK_ProveRequest({cfg: cfg, x: x, w: w}) ),
-            nonce: f_nizk_s.nonce + 1
+            nonce: f_nizk_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -101,7 +104,7 @@ module f_inizk_env{
     action env_verify_reqs_args(cfg: MsgConfig, x: NIZK_Statement, pi: NIZK_Proof) : bool = all {
         f_nizk_s' = {...f_nizk_s, 
             input: Set(NIZK_VerifyRequest({cfg: cfg, x: x, pi: pi}) ),
-            nonce: f_nizk_s.nonce + 1
+            nonce: f_nizk_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -109,13 +112,13 @@ module f_inizk_env{
         f_nizk_s.handles.size() > 0,
         f_nizk_s' = {...f_nizk_s,
            input: Set(NIZK_SIMControl),
-           nonce: f_nizk_s.nonce + 1
+           nonce: f_nizk_s.nonce + NONCE_INCREMENT
         }
     }
 
     
     action init = all {
-        nizk_init({P: Parties, C: Corrupted, SIDs: sids, responsive_simulator: false, enable_logging: true}),
+        nizk_init({P: Parties, C: Corrupted, SIDs: sids, responsive_simulator: RESPONSIVE_SIMULATOR, enable_logging: true}),
         hash_init({P: Parties, SIDs: sids, responsive_simulator: true, enable_logging: false}),
     }    
 

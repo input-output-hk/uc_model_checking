@@ -24,7 +24,7 @@ module f_pki_properties {
   
 
     action init = all {
-        pki_init({P: Parties, SIDs: sids, enable_logging: true, responsive_simulator: true}),
+        pki_init({P: Parties, SIDs: sids, enable_logging: true, responsive_simulator: RESPONSIVE_SIMULATOR}),
     }    
 
     // environment sends any of the requests
@@ -49,7 +49,7 @@ module f_pki_properties {
         f_pki_s.handles.size() > 0,
         f_pki_s' = {...f_pki_s, 
             input: Set(PKI_SIMControl),
-            nonce: f_pki_s.nonce + 1
+            nonce: f_pki_s.nonce + NONCE_INCREMENT
         }
     }    
 
@@ -61,7 +61,7 @@ module f_pki_properties {
         
         f_pki_s' = {...f_pki_s, 
             input: Set(PKI_RegisterRequest({cfg: cfg, vk: vk})),
-            nonce: f_pki_s.nonce + 1
+            nonce: f_pki_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -73,7 +73,7 @@ module f_pki_properties {
         
         f_pki_s' = {...f_pki_s, 
             input: Set(PKI_RetrieveRequest({cfg: cfg, Q: Q})),
-            nonce: f_pki_s.nonce + 1
+            nonce: f_pki_s.nonce + NONCE_INCREMENT
         }
     }    
 
@@ -83,7 +83,7 @@ module f_pki_properties {
 
         f_pki_s' = {...f_pki_s,
             input: Set(PKI_GetAllRequest({cfg: cfg})),
-            nonce: f_pki_s.nonce + 1
+            nonce: f_pki_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -97,7 +97,7 @@ module f_pki_properties {
         
         f_pki_s' = {...f_pki_s,  // Q: Party, vk: VK, cert: Certificate
             input: Set(PKI_CertVerifyRequest({cfg: cfg, Q: Q, vk: vk, cert: cert})),
-            nonce: f_pki_s.nonce + 1
+            nonce: f_pki_s.nonce + NONCE_INCREMENT
         }
     }        
 

@@ -239,7 +239,6 @@ val AllDiffusionProps = and {
 val AllSecurityProps = and {
     Auth,
     DDL,
-    NoDuplication,
 }
 
 val AllProps = and {

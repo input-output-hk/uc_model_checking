@@ -84,7 +84,7 @@ module f_crs{
             crs_gen_1(crs),
             crs_gen_2(crs),
             crs_gen_3(crs),
-            crs_sim_loses_ctrl(crs)
+            if (crs.params.responsive_simulator) Set() else crs_sim_loses_ctrl(crs)
         ).flatten()
     }
 
@@ -131,25 +131,26 @@ module f_crs{
         crs_step_with(crs_main_listener)
     }    
 
-    pure def crs_initial(P: Set[Party], D: Set[CRS], SIDs: Set[SID]) : CRS_System = {
+    pure def crs_initial(P: Set[Party], D: Set[CRS], SIDs: Set[SID], responsive_simulator: bool) : CRS_System = {
         {
             params : {
                 P: P,
                 D: D,
                 SIDs: SIDs,
+                responsive_simulator: responsive_simulator,
             },
             state: SIDs.mapBy(sid => {
                 crs: None,
             }),
             input: Set(),
-            nonce: 0, 
+            nonce: 0,
             log: Set(),
             SIM_handles: Set()
-        }        
-    }    
+        }
+    }
 
-    action crs_init(P: Set[Party], D: Set[CRS], SIDs: Set[SID]) : bool =  all {
-        crs_s' = crs_initial(P, D, SIDs)
-    }    
+    action crs_init(P: Set[Party], D: Set[CRS], SIDs: Set[SID], responsive_simulator: bool) : bool =  all {
+        crs_s' = crs_initial(P, D, SIDs, responsive_simulator)
+    }
 
 }

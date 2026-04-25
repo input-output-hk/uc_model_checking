@@ -45,8 +45,8 @@ module g_clock_types {
         params : GC_SystemParams,
         state : GC_StateVars,
         input : Set[GC_Message], // always not more than 1 message in the system
-        nonce : Nonce,        // to be able to match requests and responses in the trace
-        log : Set[{idx: int, msg: GC_Message, state: GC_StateVars}],  
+        nonce : Nonce,
+        log : Set[{idx: int, msg: GC_Message, state: GC_StateVars}],
         handles : Set[GC_Message],
     }  
  

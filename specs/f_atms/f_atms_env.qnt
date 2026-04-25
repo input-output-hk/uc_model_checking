@@ -14,12 +14,12 @@ module f_atms_env{
     val list_length = PARTY_SIZE
 
     action init : bool = all {
-        atms_init({ 
+        atms_init({
             P: Parties,
             C: Corrupted,
             SIDs: sids,
             t: threshold,
-            responsive_simulator: true,
+            responsive_simulator: RESPONSIVE_SIMULATOR,
             enable_logging: true,
         })
     }
@@ -82,7 +82,7 @@ module f_atms_env{
 
         f_atms_s' = {...f_atms_s, 
             input: Set(GenRequest({cfg: cfg})),
-            nonce: f_atms_s.nonce + 1
+            nonce: f_atms_s.nonce + NONCE_INCREMENT
         }
     }
  
@@ -94,7 +94,7 @@ module f_atms_env{
 
         f_atms_s' = {...f_atms_s, 
             input: Set(AKeyRequest({cfg: cfg, vks: vks})),
-            nonce: f_atms_s.nonce + 1
+            nonce: f_atms_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -107,7 +107,7 @@ module f_atms_env{
 
         f_atms_s' = {...f_atms_s, 
             input: Set(ACheckRequest({cfg: cfg, avk: avk, vks: vks})),
-            nonce: f_atms_s.nonce + 1
+            nonce: f_atms_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -118,7 +118,7 @@ module f_atms_env{
 
         f_atms_s' = {...f_atms_s, 
             input: Set(SignRequest({cfg: cfg, m: m})),
-            nonce: f_atms_s.nonce + 1
+            nonce: f_atms_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -128,7 +128,7 @@ module f_atms_env{
 
         f_atms_s' = {...f_atms_s, 
             input: Set(SIMControl),
-            nonce: f_atms_s.nonce + 1
+            nonce: f_atms_s.nonce + NONCE_INCREMENT
         },
     }
 
@@ -142,7 +142,7 @@ module f_atms_env{
 
         f_atms_s' = {...f_atms_s, 
             input: Set(VerifyRequest({cfg: cfg, vk: vk, m: m, sig: sig})),
-            nonce: f_atms_s.nonce + 1
+            nonce: f_atms_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -157,7 +157,7 @@ module f_atms_env{
 
         f_atms_s' = {...f_atms_s, 
             input: Set(ASignRequest({cfg: cfg, m: m, vks: vks, S: S})),
-            nonce: f_atms_s.nonce + 1
+            nonce: f_atms_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -170,7 +170,7 @@ module f_atms_env{
 
         f_atms_s' = {...f_atms_s, 
             input: Set(AVerifyRequest({cfg: cfg, avk: avk, m: m, sig: sig})),
-            nonce: f_atms_s.nonce + 1
+            nonce: f_atms_s.nonce + NONCE_INCREMENT
         }
     }    
 
