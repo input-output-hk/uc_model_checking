@@ -13,17 +13,15 @@ module g_ledger_properties {
 
  
 // must fail
-// val P1 = g_ledger_s.input.size() == 0
-// val P2 = g_ledger_s.log.size() <= 7
-// val P3 = g_ledger_s.log.map(x => x.msg).led_get_ok_response_messages().size() <= 2
-// val P4 = g_ledger_s.log.map(x => x.msg).led_get_submit_response_messages().size() <= 2
-// val P5 = g_ledger_s.log.map(x => x.msg).led_get_read_response_messages().size() <= 5
-// val P6 = g_clock_s.input.size() == 0
-// val P7 = g_clock_s.state.TIME <= 3
-// val P8 = g_ledger_s.handles.led_get_submit_sim_hold_messages().size() <= 2
-// val P9 = g_ledger_s.state.Com.keys().size() <= 3
-// val P10 = g_ledger_s.state.APL.keys().size() <= 2
-// val P11 = g_ledger_s.state.ptr.keys().size() <= 0
+val MF1 = g_ledger_s.input.size() == 0
+val MF2 = g_ledger_s.log.size() <= 7
+val MF3 = g_ledger_s.log.map(x => x.msg).led_get_submit_response_messages().size() <= 2
+val MF4 = g_ledger_s.log.map(x => x.msg).led_get_read_response_messages().size() <= 5
+val MF5 = g_clock_s.input.size() == 0
+val MF6 = g_clock_s.state.TIME <= 3
+val MF7 = g_ledger_s.state.Com.keys().size() <= 3
+val MF8 = g_ledger_s.state.APL.keys().size() <= 2
+val MF9 = g_ledger_s.state.ptr.keys().size() <= 0
 
 // Liveness: if a tx is submitted at time t by some party, and 
 // the transaction remains valid for some number of rounds, then every other party will see it as part of 

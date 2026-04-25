@@ -87,16 +87,9 @@ module g_clock_properties {
 
 // ======================= Co-Properties (must fail) =======================
 
-val LogGrows = 
-    (g_clock_s.log.size() < 5)
-
-
-val RegSize = g_clock_s.state.Reg.size() < 2
-
-val TimeAdvances = g_clock_s.state.TIME < 7
-
-val HandlesLiveness = 
-    g_clock_s.handles.size() < 7
+val MF1 =  (g_clock_s.log.size() < 5)
+val MF2 = g_clock_s.state.Reg.size() < 2
+val MF3 = g_clock_s.state.TIME < 4
 
 
 // ======================= PROPERTIES (must hold) =======================

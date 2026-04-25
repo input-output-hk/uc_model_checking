@@ -180,7 +180,8 @@ module p_bridge_properties{
         )
     )
 
-    //Bridge aux update: For all rounds r and all parties P, we have that bst[P].aux @ (r + R) = bst[P].aux’ @ r.
+    //Bridge aux update: For all case3 rounds r (r%R==0) and all parties P, we have that bst[P].aux @ (r + R) = bst[P].aux’ @ r.
+    // gap is R (not R+delta+2): case3@r sets aux_prim; case5@r+delta+2 sets aux=aux_prim; case3@r+R sees aux=aux_prim from previous period.
     val Bridge_Aux_Update = p_bridge_s.log.map(x => x.msg).filterMap(z => match z {
         | BridgeBRAlgorithmResponse(p) => Some(p)
         | _ => None
@@ -191,14 +192,15 @@ module p_bridge_properties{
         }).forall(q =>
             and {
                 p.cfg.party == q.cfg.party,
-                p.args.r + p_bridge_s.params.R + p_bridge_s.params.delta + 2 == q.args.r,
+                p.args.r % p_bridge_s.params.R == 0,   // p must be a case3 round
+                p.args.r + p_bridge_s.params.R == q.args.r,
                 p.resp.bst != None,
                 q.resp.bst != None,
                 p.resp.bst.unwrap().aux_prim != None,  // exclude warmup rounds before first rotation
             } implies {
                 val p_bst = p.resp.bst.unwrap()
                 val q_bst = q.resp.bst.unwrap()
-                q_bst.aux == p_bst.aux_prim  // aux at r+R+delta+2 equals aux_prim prepared at r
+                q_bst.aux == p_bst.aux_prim  // aux at r+R equals aux_prim prepared at case3 round r
             }
         )
     )

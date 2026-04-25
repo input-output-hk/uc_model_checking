@@ -46,10 +46,10 @@ module f_sig_env{
     }    
 
     action env_give_control_to_simulator : bool = all {
-        // Precondition: input must be empty
         f_sig_s.input.size() == 0,
+        f_sig_s.handles.size() > 0,
 
-        f_sig_s' = {...f_sig_s, 
+        f_sig_s' = {...f_sig_s,
             input: Set(SIG_SIMControl),
         }
     }
@@ -127,6 +127,7 @@ module f_sig_env{
 
     action env_sim_reqs: bool = all{
         f_sig_s.input.size() == 0,
+        f_sig_s.handles.size() > 0,
         f_sig_s' = {...f_sig_s,
            input: Set(SIG_SIMControl),
         }
