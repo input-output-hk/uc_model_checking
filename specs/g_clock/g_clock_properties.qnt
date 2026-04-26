@@ -7,6 +7,7 @@ module g_clock_properties {
     import g_clock.* from "./g_clock"
 
     import common.* from "../common"
+    import params.* from "../params"
 
 
     val P = 1.to(PARTY_SIZE)  // set of parties

@@ -5,6 +5,7 @@ module f_pki {
 
     import common.* from "../common"
     import f_pki_types.* from "./f_pki_types"
+    import params.* from "../params"
 
     var f_pki_s : PKI_System
 

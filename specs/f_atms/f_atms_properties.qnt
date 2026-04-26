@@ -5,6 +5,7 @@ module f_atms_properties{
     import f_atms.* from "./f_atms"
     import f_atms_env.* from "./f_atms_env"
     import common.* from "../common"    
+    import params.* from "../params"
    
 
     // ====== CO-Properties (must fail) ======

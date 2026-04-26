@@ -2,6 +2,7 @@ module f_sig_tests{
     
     import basicSpells.* from "../../spells/basicSpells"
     import common.* from "../common"   
+    import params.* from "../params"
     import f_sig_types.* from "./f_sig_types"
     import f_sig.* from "./f_sig"
     import f_sig_env.* from "./f_sig_env" 

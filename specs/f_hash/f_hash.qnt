@@ -4,12 +4,13 @@ module f_hash {
     import rareSpells.* from "../../spells/rareSpells"
     
     import common.* from "../common"
+    import params.* from "../params"
     
     import f_hash_types.* from "./f_hash_types"
 
     var f_hash_s : HASH_System
 
-    val ALL_HASHES = 50.to(50 + UNIVERSE_SIZE)
+    val ALL_HASHES = 50.to(50 + 2 * UNIVERSE_SIZE)
 
 
     // sending hash requests

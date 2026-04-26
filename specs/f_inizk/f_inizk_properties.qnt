@@ -5,6 +5,7 @@ module f_inizk_properties{
     import f_inizk.* from "./f_inizk"
     import f_inizk_env.* from "./f_inizk_env"
     import common.* from "../common"
+    import params.* from "../params"
 
     import f_hash_types.* from "../f_hash/f_hash_types"
     import f_hash.* from "../f_hash/f_hash"    

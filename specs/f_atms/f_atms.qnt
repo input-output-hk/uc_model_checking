@@ -4,6 +4,7 @@ module f_atms{
     import rareSpells.* from "../../spells/rareSpells"
     import common.* from "../common"   
     import f_atms_types.* from "./f_atms_types"
+    import params.* from "../params"
 
     
     var f_atms_s : ATMS_System

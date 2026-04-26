@@ -4,7 +4,8 @@ module f_sig_env{
     import basicSpells.* from "../../spells/basicSpells"
     import f_sig_types.* from "./f_sig_types"
     import f_sig.* from "./f_sig"
-    import common.* from "../common"    
+    import common.* from "../common"  
+    import params.* from "../params"  
 
    
    val Parties = 1.to(PARTY_SIZE)

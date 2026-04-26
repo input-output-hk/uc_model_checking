@@ -3,7 +3,8 @@ module f_atms_env{
     import basicSpells.* from "../../spells/basicSpells"
     import f_atms_types.* from "./f_atms_types"
     import f_atms.* from "./f_atms"
-    import common.* from "../common"    
+    import common.* from "../common"   
+    import params.* from "../params" 
 
     val Parties = 1.to(PARTY_SIZE)
     val Corrupted = 1.to(CORRUPTED_PARTY_SIZE)

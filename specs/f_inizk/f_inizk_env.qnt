@@ -7,7 +7,8 @@ module f_inizk_env{
     import f_hash_types.* from "../f_hash/f_hash_types"
     import g_ledger_types.* from "../g_ledger/g_ledger_types"
     import f_hash.* from "../f_hash/f_hash"
-    import common.* from "../common"    
+    import common.* from "../common" 
+    import params.* from "../params"   
 
    
    val Parties = 1.to(PARTY_SIZE)

@@ -3,6 +3,7 @@ module f_inizk_types{
     import basicSpells.* from "../../spells/basicSpells"
     import rareSpells.* from "../../spells/rareSpells"
     import common.* from "../common"
+    import params.* from "../params"
     import g_ledger_types.* from "../g_ledger/g_ledger_types"    
     
     type NIZK_Witness = List[LED_Tx]

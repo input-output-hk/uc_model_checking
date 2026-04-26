@@ -2,6 +2,7 @@ module f_hash_types {
 
     import basicSpells.* from "../../spells/basicSpells"
     import common.* from "../common"
+    import params.* from "../params"
 
     import g_ledger_types.* from "../g_ledger/g_ledger_types" 
 
@@ -133,7 +134,7 @@ module f_hash_types {
         | HASH_UpdateInput(msgs) => 
             {...sys, 
                 input: msgs,
-                log: if (sys.params.enable_logging and msgs.hash_get_all_response_messages().size() == 1) sys.log.setAdd({idx: sys.log.size(), msg: (msgs.pickSome()),}) else sys.log
+                log: if (sys.params.enable_logging and msgs.hash_get_all_response_messages().size() == 1) sys.log.setAdd({idx: sys.log.size(), msg: (msgs.hash_get_all_response_messages().pickSome()),}) else sys.log
             }
         | HASH_AppendHandle(msg) => 
             {...sys,

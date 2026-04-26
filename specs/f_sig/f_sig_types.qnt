@@ -2,7 +2,8 @@ module f_sig_types {
 
     import basicSpells.* from "../../spells/basicSpells"
     import rareSpells.* from "../../spells/rareSpells"
-    import common.* from "../common"    
+    import common.* from "../common"   
+    import params.* from "../params" 
     
     type SIG_PublicKey = int
     type SIG_Document = str

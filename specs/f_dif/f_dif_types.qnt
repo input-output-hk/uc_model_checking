@@ -2,6 +2,7 @@ module f_dif_types {
 
     import basicSpells.* from "../../spells/basicSpells"
     import common.* from "../common"
+    import params.* from "../params"
 
     import g_clock_types.* from "../g_clock/g_clock_types"
 
@@ -11,12 +12,9 @@ module f_dif_types {
     
     type DIF_Message =
 
-        | DIF_DiffuseRequest({cfg: MsgConfig, m: DIF_Data}) 
+        | DIF_DiffuseRequest({cfg: MsgConfig, m: DIF_Data})
         | DIF_SIMDiffuseHold({cfg: MsgConfig, ctr:Counter, t:Time, m:DIF_Data})
         | DIF_SIMDiffuseRelease({cfg: MsgConfig, ctr: Counter, t:Time, m : DIF_Data})
-        | DIF_ClockRequest({cfg: MsgConfig, ctr:Counter, t: Time, m: DIF_Data})
-        | DIF_ClockRequestWait({cfg: MsgConfig, ctr:Counter, t: Time, m: DIF_Data})
-        | DIF_ClockResponse({cfg: MsgConfig, ctr:Counter, t: Time, m: DIF_Data})        
         | DIF_DiffuseResponse({cfg: MsgConfig, ctr:Counter, t: Time, m: DIF_Data})
 
         | DIF_FetchRequest({cfg: MsgConfig})
@@ -166,33 +164,6 @@ module f_dif_types {
         messages.filterMap(m => {
         match m {
             | DIF_SIMDiffuseRelease(p) => Some(p)
-            | _ => None
-        }
-        })
-    }
-
-    pure def dif_get_clock_request_messages(messages: Set[DIF_Message]): Set[{cfg: MsgConfig, ctr: Counter, t: Time, m: DIF_Data}] = {
-        messages.filterMap(m => {
-        match m {
-            | DIF_ClockRequest(p) => Some(p)
-            | _ => None
-        }
-        })
-    }
-
-    pure def dif_get_clock_request_wait_messages(messages: Set[DIF_Message]): Set[{cfg: MsgConfig, ctr: Counter, t: Time, m: DIF_Data}] = {
-        messages.filterMap(m => {
-        match m {
-            | DIF_ClockRequestWait(p) => Some(p)
-            | _ => None
-        }
-        })
-    }
-
-    pure def dif_get_clock_response_messages(messages: Set[DIF_Message]): Set[{cfg: MsgConfig, ctr: Counter, t: Time, m: DIF_Data}] = {
-        messages.filterMap(m => {
-        match m {
-            | DIF_ClockResponse(p) => Some(p)
             | _ => None
         }
         })

@@ -3,6 +3,7 @@ module g_clock_types {
     //import uc.* from "../uc"
     import basicSpells.* from "../../spells/basicSpells"
     import common.* from "../common"    
+    import params.* from "../params"
 
     // define types of the system
     type PartySID = {party: Party, sid: SID}

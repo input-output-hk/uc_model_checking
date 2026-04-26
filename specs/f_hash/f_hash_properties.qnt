@@ -5,6 +5,7 @@ module f_hash_properties{
     import f_hash_types.*   from "./f_hash_types"
     import f_hash.*  from "./f_hash"
     import g_ledger_types.* from "../g_ledger/g_ledger_types" 
+    import params.* from "../params"
 
     val Parties = 1.to(PARTY_SIZE)
     val sids = 1.to(SID_SIZE)

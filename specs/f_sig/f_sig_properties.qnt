@@ -5,6 +5,7 @@ module f_sig_properties {
     import f_sig.* from "./f_sig"
     import f_sig_env.* from "./f_sig_env"
     import common.* from "../common"    
+    import params.* from "../params"
 
 
     // MUST FAILS   

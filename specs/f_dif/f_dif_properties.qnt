@@ -3,6 +3,7 @@ module f_dif_properties {
     import basicSpells.* from "../../spells/basicSpells"
     import rareSpells.* from "../../spells/rareSpells"
     import common.* from "../common"
+    import params.* from "../params"
     import g_clock_types.* from "../g_clock/g_clock_types"
     import g_clock.* from "../g_clock/g_clock"    
     import f_dif_types.*   from "./f_dif_types"
@@ -106,13 +107,17 @@ val DDL = {
 // Authentication: If a nonempty set of messages was delivered then they were indeed diffused or injected in the past.
 val Auth = f_dif_s.log.forall(log_entry1 => {
     match log_entry1.msg {
-        | DIF_FetchResponse(p) => { 
+        | DIF_FetchResponse(p) => {
             (p.data != Set()) implies p.data.forall(data => {
                 f_dif_s.log.exists(log_entry2 => {
                     match log_entry2.msg {
-                        | DIF_DiffuseRequest(q) => q.m == data
+                        | DIF_DiffuseRequest(q) => and {
+                            q.m == data,
+                            q.cfg.sid == p.cfg.sid
+                        }
                         | DIF_InjectRequest(q) => and {
                             q.m == data,
+                            q.cfg.sid == p.cfg.sid,
                             q.Q == p.cfg.party
                         }
                         | _ => false
@@ -158,7 +163,6 @@ val NoOrphanedHolds = f_dif_s.handles.forall(h => {
     match h {
         | DIF_SIMDiffuseHold(_) => true
         | DIF_SIMFetchHold(_) => true
-        | DIF_ClockRequestWait(_) => true
         | DIF_OKRequestWait(_) => true
         | _ => false
     }

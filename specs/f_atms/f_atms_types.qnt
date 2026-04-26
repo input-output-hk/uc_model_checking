@@ -2,6 +2,7 @@ module f_atms_types {
     
     import basicSpells.* from "../../spells/basicSpells"
     import common.* from "../common"
+    import params.* from "../params"
 
     // define types of the system  
     type ATMS_VK = int

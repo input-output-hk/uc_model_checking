@@ -4,6 +4,7 @@ module f_dif_env{
     import basicSpells.* from "../../spells/basicSpells"
     import rareSpells.* from "../../spells/rareSpells"
     import common.* from "../common"
+    import params.* from "../params"
     import g_clock_types.* from "../g_clock/g_clock_types"
     import g_clock.* from "../g_clock/g_clock"    
     import f_dif_types.*   from "./f_dif_types"
@@ -73,7 +74,7 @@ module f_dif_env{
         val cfg = {party: from, sid: sid, nonce: f_dif_s.nonce}
         f_dif_s' = {...f_dif_s,
             input: Set(DIF_DiffuseRequest({cfg: cfg, m: {party: from, avk: top, sig: data}})),
-            nonce: f_dif_s.nonce + 1
+            nonce: f_dif_s.nonce + NONCE_INCREMENT
         },
         gc_stutter
     }
@@ -88,7 +89,7 @@ module f_dif_env{
         val cfg = {party: from, sid: sid, nonce: f_dif_s.nonce}
         f_dif_s' = {...f_dif_s,
             input: Set(DIF_InjectRequest({cfg: cfg, Q: top, m: {party: from, avk: top, sig: data}})),
-            nonce: f_dif_s.nonce + 1
+            nonce: f_dif_s.nonce + NONCE_INCREMENT
         },
         gc_stutter
     }
@@ -105,7 +106,7 @@ module f_dif_env{
         // Option 2: Fetch
         f_dif_s' = {...f_dif_s,
             input: Set(DIF_FetchRequest({cfg: cfg})),
-            nonce: f_dif_s.nonce + 1
+            nonce: f_dif_s.nonce + NONCE_INCREMENT
         },
         gc_stutter
     }
@@ -120,7 +121,7 @@ module f_dif_env{
         // Option 3: OK
         f_dif_s' = {...f_dif_s,
             input: Set(DIF_OKRequest({cfg: cfg})),
-            nonce: f_dif_s.nonce + 1
+            nonce: f_dif_s.nonce + NONCE_INCREMENT
         },
         gc_stutter
     }
@@ -132,7 +133,7 @@ module f_dif_env{
 
         f_dif_s' = {...f_dif_s,
             input: Set(DIF_SIMControl),
-            nonce: f_dif_s.nonce + 1
+            nonce: f_dif_s.nonce + NONCE_INCREMENT
         },
         gc_stutter
     }
@@ -144,7 +145,7 @@ module f_dif_env{
 
         g_clock_s' = {...g_clock_s,
             input: Set(GC_SIMControl),
-            nonce: g_clock_s.nonce + 1
+            nonce: g_clock_s.nonce + NONCE_INCREMENT
         },
         f_dif_s' = f_dif_s,
     }

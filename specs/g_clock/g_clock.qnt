@@ -3,6 +3,7 @@ module g_clock{
     import basicSpells.* from "../../spells/basicSpells"
     import g_clock_types.* from "./g_clock_types"
     import common.* from "../common"
+    import params.* from "../params"
 
     // mutable variable represents the system state
     var g_clock_s : GC_System

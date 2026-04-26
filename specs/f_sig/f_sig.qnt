@@ -1,6 +1,7 @@
 module f_sig{
 
     import common.* from "../common"
+    import params.* from "../params"
     import basicSpells.* from "../../spells/basicSpells"
     import rareSpells.* from "../../spells/rareSpells"    
     import f_sig_types.* from "./f_sig_types"

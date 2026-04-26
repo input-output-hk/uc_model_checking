@@ -11,7 +11,8 @@ module g_ledger_env {
     import g_ledger_genesis.* from "./g_ledger_genesis" 
     import g_clock_types.* from "../g_clock/g_clock_types"
     import g_clock.* from "../g_clock/g_clock"
-    import common.* from "../common"    
+    import common.* from "../common"   
+    import params.* from "../params" 
 
    val ALL_TXS = 1.to(UNIVERSE_SIZE).map(x => Normal({b: true, tx: x})).union(
        1.to(UNIVERSE_SIZE).map(x => Normal({b: false, tx: x})) )
