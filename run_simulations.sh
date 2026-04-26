@@ -100,7 +100,7 @@ run_sim "p_bridge" "$SPECS_DIR/p_bridge/p_bridge_properties.qnt" "p_bridge_prope
 
 
 run_must_fails "f_hash" "$SPECS_DIR/f_hash/f_hash_properties.qnt" "f_hash_properties" \
-    "HashLiveness"
+    "MF1"
 
 run_must_fails "f_sig" "$SPECS_DIR/f_sig/f_sig_properties.qnt" "f_sig_properties" \
     "GenLiveness" \

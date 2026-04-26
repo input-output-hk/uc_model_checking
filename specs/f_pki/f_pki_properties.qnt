@@ -5,6 +5,7 @@ module f_pki_properties {
     import common.* from "../common"
     import f_pki_types.*   from "./f_pki_types"
     import f_pki.*  from "./f_pki"
+    import params.* from "../params"
 
     val Parties = 1.to(PARTY_SIZE)
     val sids = 1.to(SID_SIZE)

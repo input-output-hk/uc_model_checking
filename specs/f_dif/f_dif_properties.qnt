@@ -13,21 +13,18 @@ module f_dif_properties {
 
 // ========== CO-PROPERTIES (should fail - used for model checking bounds) ==========
 
-val P1 = f_dif_s.input.size() == 0
-val P2 = f_dif_s.log.size() <= 7
-val P3 = f_dif_s.log.map(x => x.msg).dif_get_ok_response_messages().size() <= 2
-val P4 = f_dif_s.log.map(x => x.msg).dif_get_fetch_response_messages().size() <= 2
-val P5 = f_dif_s.log.map(x => x.msg).dif_get_diffuse_response_messages().size() <= 4
-val P6 = g_clock_s.input.size() == 0
-val P7 = g_clock_s.input.map(x => x).gc_get_all_response_messages().size() == 0
-val P8 = g_clock_s.state.TIME <= 5
-val P9 = f_dif_s.log.map(x => x.msg).dif_get_fetch_response_messages().forall(m => m.data.size() == 0)
-val P10 = f_dif_s.handles.dif_get_sim_diffuse_hold_messages().size() <= 2
-
- 
-
+val MF1 = f_dif_s.input.size() == 0
+val MF2 = f_dif_s.log.size() <= 7
+val MF3 = f_dif_s.log.map(x => x.msg).dif_get_ok_response_messages().size() <= 2
+val MF4 = f_dif_s.log.map(x => x.msg).dif_get_fetch_response_messages().size() <= 2
+val MF5 = f_dif_s.log.map(x => x.msg).dif_get_diffuse_response_messages().size() <= 4
+val MF6 = g_clock_s.input.size() == 0
+val MF7 = g_clock_s.input.map(x => x).gc_get_all_response_messages().size() == 0
+val MF8 = g_clock_s.state.TIME <= 5
+val MF9 = f_dif_s.log.map(x => x.msg).dif_get_fetch_response_messages().forall(m => m.data.size() == 0)
+val MF10 = f_dif_s.handles.dif_get_sim_diffuse_hold_messages().size() <= 2
 // At time t a message is delivered at most once to the same party
-val NoDuplication = f_dif_s.log.forall(log1 => {
+val MF11 = f_dif_s.log.forall(log1 => {
     match log1.msg {
         | DIF_FetchResponse(fr1) => {
             f_dif_s.log.forall(log2 => {
@@ -50,11 +47,9 @@ val NoDuplication = f_dif_s.log.forall(log1 => {
         | _ => true
     }
 })
-
-
 // Broadcast property: At every moment L[*,ctr] > 1 then {P | L[P,ctr]} == P
 // (not true because fetch breaks L)
-val BroadcastToAll = sids.forall(sid => {
+val MF12 = sids.forall(sid => {
     val sid_state = f_dif_s.state.get(sid)
     // For each counter value in L
     sid_state.L.keys().forall(k1 => {
@@ -68,8 +63,30 @@ val BroadcastToAll = sids.forall(sid => {
         }
     })
 })
+// MUST FAIL -- fails when at least one diffuse response appears in the log
+val MF13 = f_dif_s.log.forall(e => match e.msg {
+    | DIF_DiffuseResponse(_) => false
+    | _ => true
+})
+// MUST FAIL -- fails when at least one non-empty fetch response appears in the log
+val MF14 = f_dif_s.log.forall(e => match e.msg {
+    | DIF_FetchResponse(r) => r.data.size() == 0
+    | _ => true
+})
+// MUST FAIL -- fails when at least one inject response appears in the log
+val MF15 = f_dif_s.log.forall(e => match e.msg {
+    | DIF_InjectResponse(_) => false
+    | _ => true
+})
+// MUST FAIL -- fails when at least one OK response appears in the log
+val MF16 = f_dif_s.log.forall(e => match e.msg {
+    | DIF_OKResponse(_) => false
+    | _ => true
+})
 
-// ========== PROPERTIES ==========
+
+
+// ========== PROPERTIES (must hold) ==========
 
 // ∆-delayed Liveness: if P diffuses a message m in some round t, and Q attempts to fetch in some
 // round t' ≥ t + ∆ then Q receives m in some round t'' ∈ [t, t'].
@@ -198,31 +215,6 @@ temporal NeverStuck = {
   })
 }
 
-// ========== LIVENESS (must-fail invariants) ==========
-
-// MUST FAIL -- fails when at least one diffuse response appears in the log
-val DiffuseLiveness = f_dif_s.log.forall(e => match e.msg {
-    | DIF_DiffuseResponse(_) => false
-    | _ => true
-})
-
-// MUST FAIL -- fails when at least one non-empty fetch response appears in the log
-val FetchLiveness = f_dif_s.log.forall(e => match e.msg {
-    | DIF_FetchResponse(r) => r.data.size() == 0
-    | _ => true
-})
-
-// MUST FAIL -- fails when at least one inject response appears in the log
-val InjectLiveness = f_dif_s.log.forall(e => match e.msg {
-    | DIF_InjectResponse(_) => false
-    | _ => true
-})
-
-// MUST FAIL -- fails when at least one OK response appears in the log
-val OKLiveness = f_dif_s.log.forall(e => match e.msg {
-    | DIF_OKResponse(_) => false
-    | _ => true
-})
 
 // ========== COMBINED PROPERTIES ==========
 

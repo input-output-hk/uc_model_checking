@@ -81,6 +81,14 @@ module f_hash_properties{
     }
 
 
+    // ============ Co-properties (must-fail) ================
+    val MF1 = sids.forall(sid =>
+        f_hash_s.state.get(sid).hash_map.keys().size() == 0
+    )
+
+
+
+    // ============ Properties (must-hold) ================
 
     // Correctness: For all x and all P and Q we have that P.Hash(x) = Q.Hash(x).
     // This property checks that all parties get the same hash for the same input value
@@ -103,7 +111,6 @@ module f_hash_properties{
         })
     }
 
-    // =======================  Properties  ================================
 
     // Collision resistance: For all x and y and all P and Q we have that if x ≠ y ⇒ P.Hash(x) ≠ Q.Hash(y).
     // This property checks that different inputs produce different hashes
@@ -126,10 +133,6 @@ module f_hash_properties{
         })
     }
 
-    // MUST FAIL -- fails when at least one hash has been computed in some session
-    val HashLiveness = sids.forall(sid =>
-        f_hash_s.state.get(sid).hash_map.keys().size() == 0
-    )
 
     val AllProps = all {
         HASH_Correctness,
