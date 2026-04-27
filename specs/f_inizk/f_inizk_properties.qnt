@@ -12,13 +12,13 @@ module f_inizk_properties{
 
     // ========== CO-PROPERTIES (must fail) ==========
     
-    val P1 = sids.forall(sid => 
+    val MF1 = sids.forall(sid => 
         f_nizk_s.state.get(sid).Ver.size() <= 4
     )
     
     // ProofNonMalleability: The same proof shouldn't verify different statements
     // (unless relation allows it - but this would be suspicious)
-    val ProofNonMalleability = sids.forall(sid => {
+    val MF2 = sids.forall(sid => {
         val sid_state = f_nizk_s.state.get(sid)
         sid_state.Ver.forall(entry1 => {
             sid_state.Ver.forall(entry2 => {
@@ -32,7 +32,7 @@ module f_inizk_properties{
     })
     
     // Verify must follow prove (can't verify without a proof being generated)
-    val VerifyAfterProve = f_nizk_s.log.forall(log => {
+    val MF3 = f_nizk_s.log.forall(log => {
         match log.msg {
             | NIZK_VerifyResponse(vr) => {
                 (vr.b == true) implies {
@@ -180,8 +180,6 @@ module f_inizk_properties{
         AllSoundnessProps,
         Completeness,
         AllConsistencyProps,
-        //ProofNonMalleability,
-        //VerifyAfterProve,
     }
 
 }

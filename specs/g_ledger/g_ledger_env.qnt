@@ -120,7 +120,7 @@ module g_ledger_env {
         val cfg = {party: from, sid: sid, nonce: g_ledger_s.nonce}
         g_ledger_s' = {...g_ledger_s, 
             input: Set(SubmitRequest({cfg: cfg, tx: tx})),
-            nonce: g_ledger_s.nonce + 1
+            nonce: g_ledger_s.nonce + NONCE_INCREMENT
 
         },
         gc_stutter
@@ -135,7 +135,7 @@ module g_ledger_env {
         val cfg = {party: from, sid: sid, nonce: g_ledger_s.nonce}
         g_ledger_s' = {...g_ledger_s, 
             input: Set(ComSelRequest({cfg: cfg})),
-            nonce: g_ledger_s.nonce + 1
+            nonce: g_ledger_s.nonce + NONCE_INCREMENT
         },
         gc_stutter
     }    
@@ -148,7 +148,7 @@ module g_ledger_env {
         val cfg = {party: from, sid: sid, nonce: g_ledger_s.nonce}
         g_ledger_s' = {...g_ledger_s, 
             input: Set(APLRequest({cfg: cfg})),
-            nonce: g_ledger_s.nonce + 1
+            nonce: g_ledger_s.nonce + NONCE_INCREMENT
         },
         gc_stutter
     }        
@@ -161,7 +161,7 @@ module g_ledger_env {
         val cfg = {party: from, sid: sid, nonce: g_ledger_s.nonce}
         g_ledger_s' = {...g_ledger_s, 
             input: Set(GenesisRequest({cfg: cfg})),
-            nonce: g_ledger_s.nonce + 1
+            nonce: g_ledger_s.nonce + NONCE_INCREMENT
         },
         gc_stutter
     }            
@@ -176,7 +176,7 @@ module g_ledger_env {
         // Option 2: Fetch
         g_ledger_s' = {...g_ledger_s, 
             input: Set(ReadRequest({cfg: cfg})),
-            nonce: g_ledger_s.nonce + 1
+            nonce: g_ledger_s.nonce + NONCE_INCREMENT
 
         },
         gc_stutter   
@@ -192,7 +192,7 @@ module g_ledger_env {
         // Option 3: OK
         g_ledger_s' = {...g_ledger_s, 
             input: Set(OKRequest({cfg: cfg})),
-            nonce: g_ledger_s.nonce + 1
+            nonce: g_ledger_s.nonce + NONCE_INCREMENT
 
         },   
         gc_stutter     
@@ -205,7 +205,7 @@ module g_ledger_env {
 
         g_ledger_s' = {...g_ledger_s, 
             input: Set(LED_SIMControl),
-            nonce: g_ledger_s.nonce + 1
+            nonce: g_ledger_s.nonce + NONCE_INCREMENT
         },
         gc_stutter
     }

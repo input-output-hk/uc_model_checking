@@ -9,15 +9,36 @@ module f_sig_properties {
 
 
     // MUST FAILS   
-    val GenLiveness  = sids.forall(sid => f_sig_s.state.get(sid).VK.size() <= 1) 
-    val SignLiveness = sids.forall(sid => f_sig_s.state.get(sid).Ver.size() <= 5) 
+    val MF1  = sids.forall(sid => f_sig_s.state.get(sid).VK.size() <= 1) 
+    val MF2 = sids.forall(sid => f_sig_s.state.get(sid).Ver.size() <= 5) 
     // If Ver containts some vk entry  then VK table must  contain respective entry
-    val AdvCanVerify = sids.forall(sid => {
+    val MF3 = sids.forall(sid => {
         val sid_state = f_sig_s.state.get(sid)
         sid_state.Ver.forall(
             entry => sid_state.VK.exists(p => p.vk == entry.vk)
         )
     })
+    // No signature reuse: A signature that verifies for one message shouldn't verify for a different message (assuming honest VK owner)
+    val MF4 = sids.forall(sid => {
+        val sid_state = f_sig_s.state.get(sid)
+        sid_state.Ver.forall(entry1 => {
+            sid_state.Ver.forall(entry2 => {
+                and {
+                    entry1.vk == entry2.vk,
+                    entry1.sig == entry2.sig,
+                    entry1.b == true,
+                    entry2.b == true,
+                    sid_state.VK.exists(vk_entry => {
+                        and {
+                            vk_entry.vk == entry1.vk,
+                            not(vk_entry.party.in(f_sig_s.params.C))
+                        }
+                    })
+                } implies (entry1.m == entry2.m)
+            })
+        })
+    })
+
 
     // MUST HOLD
 
@@ -122,27 +143,6 @@ module f_sig_properties {
             | _ => true
         }})
 
-    // No signature reuse: A signature that verifies for one message shouldn't verify for a different message (assuming honest VK owner)
-    // FAILS
-    val NoSignatureReuse = sids.forall(sid => {
-        val sid_state = f_sig_s.state.get(sid)
-        sid_state.Ver.forall(entry1 => {
-            sid_state.Ver.forall(entry2 => {
-                and {
-                    entry1.vk == entry2.vk,
-                    entry1.sig == entry2.sig,
-                    entry1.b == true,
-                    entry2.b == true,
-                    sid_state.VK.exists(vk_entry => {
-                        and {
-                            vk_entry.vk == entry1.vk,
-                            not(vk_entry.party.in(f_sig_s.params.C))
-                        }
-                    })
-                } implies (entry1.m == entry2.m)
-            })
-        })
-    })
 
     // Can only sign if VK has been generated for that party
     val VKBeforeSign = f_sig_s.log.forall(log => {

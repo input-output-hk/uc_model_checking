@@ -4,6 +4,7 @@ module p_bridge_properties{
     import rareSpells.* from "../../spells/rareSpells"
 
     import common.* from "../common"
+    import params.* from "../params"
 
     import f_pki_types.* from "../f_pki/f_pki_types"    
     import f_pki.* from "../f_pki/f_pki"
@@ -105,28 +106,28 @@ module p_bridge_properties{
     // can't reach that milestone and something is broken.
 
     // Any log entry produced (trivial progress check).
-    val Q1 = p_bridge_s.log.size() <= 1
+    val MF1 = p_bridge_s.log.size() <= 1
 
     // Phase 1 — BKGen: a validator key is generated for any party.
-    val Q3 = p_bridge_s.log.map(x => x.msg).filterMap(z => match z {
+    val MF3 = p_bridge_s.log.map(x => x.msg).filterMap(z => match z {
         | BKGenResponse(_) => Some(true) | _ => None
     }).size() == 0
 
     // Phase 2 — RoT: RoT completes for party 1.
-    val Q2 = p_bridge_s.state.bst.get(1).rot == None
+    val MF2 = p_bridge_s.state.bst.get(1).rot == None
 
     // Phase 3 — BRAlgorithm: bridge rotation commits a hash for party 1 (case3_6 fired).
-    val Q4 = p_bridge_s.state.bst.get(1).h == None
+    val MF4 = p_bridge_s.state.bst.get(1).h == None
 
     // Phase 4 — Certify: certify produces a valid proof (res != None) for some request.
-    val Q5 = p_bridge_s.log.map(x => x.msg).brd_get_certify_response_messages().forall(p => p.res == None)
+    val MF5 = p_bridge_s.log.map(x => x.msg).brd_get_certify_response_messages().forall(p => p.res == None)
 
     // Phase 5 — Verify: at least one successful verify response.
-    val Q6 = p_bridge_s.log.map(x => x.msg).brd_get_verify_response_messages().filter(x => x.res == true).size() == 0
+    val MF6 = p_bridge_s.log.map(x => x.msg).brd_get_verify_response_messages().filter(x => x.res == true).size() == 0
     // (VIOLATED) Bridge democracy: 
     // For all rounds r and all parties P, we have 
     // that bst[P].aux.Com @ r ≠ bst[P].aux.Com @ (r + R) (doesn’t hold – authoritarian regime possible)
-    val Bridge_Democracy = p_bridge_s.log.map(x => x.msg).filterMap(z => match z {
+    val MF7 = p_bridge_s.log.map(x => x.msg).filterMap(z => match z {
         | BridgeBRAlgorithmResponse(p) => Some(p)
         | _ => None
     }).forall(p =>
@@ -291,7 +292,7 @@ module p_bridge_properties{
         val apl = p.apl
         val L1 = p.L1
         val L = L1.slice(0, apl)
-        val small_delta = 6 // delta_latency + delta_slack + Delta
+        val small_delta = g_ledger_s.params.delta_latency + g_ledger_s.params.delta_slack + p_bridge_s.params.delta + 1
 
         and {
             p.x == q.x, // tx are the same

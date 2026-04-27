@@ -4,6 +4,7 @@ module p_bridge_env{
     import rareSpells.* from "../../spells/rareSpells"
 
     import common.* from "../common"
+    import params.* from "../params"
 
     import f_pki_types.* from "../f_pki/f_pki_types"    
     import f_pki.* from "../f_pki/f_pki"
@@ -335,7 +336,7 @@ module p_bridge_env{
 
         g_ledger_s' = {...g_ledger_s, 
             input: Set(ntx),
-            nonce: g_ledger_s.nonce + 1
+            nonce: g_ledger_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -343,7 +344,7 @@ module p_bridge_env{
     action p_bridge_bkgen_request(cfg: MsgConfig) : bool = all {
         p_bridge_s' = {...p_bridge_s, 
             input: Set(BKGenRequest({cfg: cfg})),
-            nonce: p_bridge_s.nonce + 1
+            nonce: p_bridge_s.nonce + NONCE_INCREMENT
         }
     }
 
@@ -351,28 +352,28 @@ module p_bridge_env{
     action p_bridge_rot_request(cfg: MsgConfig) : bool = all {
         p_bridge_s' = {...p_bridge_s, 
             input: Set(RoTRequest({cfg: cfg})),
-            nonce: p_bridge_s.nonce + 1
+            nonce: p_bridge_s.nonce + NONCE_INCREMENT
         }
     }
 
     action p_bridge_br_request(cfg: MsgConfig) : bool = all {
         p_bridge_s' = {...p_bridge_s, 
             input: Set(BridgeRequest({cfg: cfg})),
-            nonce: p_bridge_s.nonce + 1
+            nonce: p_bridge_s.nonce + NONCE_INCREMENT
         }
     }    
 
     action p_bridge_certify_request(cfg: MsgConfig, rot: BRD_ROT, x: LED_Tx) : bool = all {
         p_bridge_s' = {...p_bridge_s, 
             input: Set(CertifyRequest({cfg: cfg, rot: rot, x: x})),
-            nonce: p_bridge_s.nonce + 1
+            nonce: p_bridge_s.nonce + NONCE_INCREMENT
         }
     }
 
     action p_bridge_verify_request(cfg: MsgConfig, rot: BRD_ROT, x: LED_Tx, pi: int, h: int) : bool = all {
         p_bridge_s' = {...p_bridge_s, 
             input: Set(BRD_VerifyRequest({cfg: cfg, rot: rot, x: x, proof: {pi: pi, h: h} })),
-            nonce: p_bridge_s.nonce + 1
+            nonce: p_bridge_s.nonce + NONCE_INCREMENT
         }
     }
  

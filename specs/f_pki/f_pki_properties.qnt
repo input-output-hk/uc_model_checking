@@ -126,64 +126,33 @@ module f_pki_properties {
 
 
 
-    // ================= PROPERTIES =================
-
-    // ---- Liveness: must-fail invariants ----
-    // Each of these should be VIOLATED by the model checker, witnessing that the
-    // corresponding operation can actually complete.
+    // ================= Co-PROPERTIES (must-fails) =================
 
     // Fails when all parties have registered in some session
-    val RegisterLiveness = sids.forall(sid =>
+    val MF1 = sids.forall(sid =>
         f_pki_s.state.get(sid).Reg.size() < Parties.size()
     )
 
     // Fails when at least one successful retrieve response appears in the log
-    val RetrieveLiveness = f_pki_s.log.forall(e => match e.msg {
+    val MF2 = f_pki_s.log.forall(e => match e.msg {
         | PKI_RetrieveResponse(r) => r.vk == None
         | _ => true
     })
 
     // Fails when at least one successful cert-verify response appears in the log
-    val CertVerifyLiveness = f_pki_s.log.forall(e => match e.msg {
+    val MF3 = f_pki_s.log.forall(e => match e.msg {
         | PKI_CertVerifyResponse(r) => r.result == false
         | _ => true
     })
 
     // Fails when a GetAll response with at least one entry appears in the log
-    val GetAllLiveness = f_pki_s.log.forall(e => match e.msg {
+    val MF4 = f_pki_s.log.forall(e => match e.msg {
         | PKI_GetAllResponse(r) => r.vks.keys().size() == 0
         | _ => true
     })
 
-    // ---- Liveness: temporal properties ----
-    // Each property says: if `step` is weakly fair then the system is live.
 
-    // Eventually some party registers
-    temporal RegisterLivenessTemp =
-        step.weakFair(Set(f_pki_s)).implies(
-            eventually(sids.exists(sid => f_pki_s.state.get(sid).Reg.size() > 0))
-        )
-
-    // If a party registered, eventually a retrieve for them succeeds
-    temporal RetrieveLivenessTemp =
-        step.weakFair(Set(f_pki_s)).implies(
-            (sids.exists(sid => f_pki_s.state.get(sid).Reg.size() > 0)) implies
-            eventually(f_pki_s.log.exists(e => match e.msg {
-                | PKI_RetrieveResponse(r) => r.vk != None
-                | _ => false
-            }))
-        )
-
-    // If a party registered, eventually a cert-verify for them succeeds
-    temporal CertVerifyLivenessTemp =
-        step.weakFair(Set(f_pki_s)).implies(
-            (sids.exists(sid => f_pki_s.state.get(sid).Ver.size() > 0)) implies
-            eventually(f_pki_s.log.exists(e => match e.msg {
-                | PKI_CertVerifyResponse(r) => r.result == true
-                | _ => false
-            }))
-        )
-
+    // ================= Properties (must-hold) =================
     // ---- Safety properties ----
 
     // one entry per party in Reg and Ver lists

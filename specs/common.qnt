@@ -3,17 +3,6 @@ module common {
 
     import basicSpells.* from "../spells/basicSpells"    
 
-
-    // // ==== MODEL SIZE PARAMETERS ====
-    // val UNIVERSE_SIZE = 5  // how many different values can be used in the protocol (per entity)
-    // val PARTY_SIZE = 3     // how many parties are there in the protocol
-    // val CORRUPTED_PARTY_SIZE = 1 // how many parties can be corrupted
-    // val SID_SIZE = 1 // how many different sessions can be run
-    // val MAX_LOG_SIZE = 1000 // maximum size of the log (to prevent unbounded growth)
-    // val RESPONSIVE_SIMULATOR = true // false = adversarial (can drop SIM control); true = cooperative
-    // val NONCE_INCREMENT = 1 //if (RESPONSIVE_SIMULATOR) 0 else 1
-
-
     // ===== Definitions Common to All Functionalities =====
 
     type Time = int
