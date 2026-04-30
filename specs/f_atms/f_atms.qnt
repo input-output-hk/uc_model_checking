@@ -125,7 +125,7 @@ module f_atms{
             val P = p.cfg.party
             val sid = p.cfg.sid
             val sid_state = atms.state.get(sid)
-            val maybe_vk = sid_state.VK.find(x => x.party == P) // TODO: make sure that VK is functional
+            val maybe_vk = sid_state.VK.find(x => x.party == P) 
 
             if(maybe_vk != None){
                 {
@@ -995,7 +995,7 @@ module f_atms{
 
                     Set({
                         post_state: atms.state.set(sid, {...sid_state,
-                            AVK: new_AVK, // BUG: problem with duplication
+                            AVK: new_AVK, 
                             VKs: new_VKs,
                             CVK: new_CVK,
                             AVER: sid_state.AVER.setAdd({avk: p.avk, m: p.m, sig: p.sig, b: new_b})

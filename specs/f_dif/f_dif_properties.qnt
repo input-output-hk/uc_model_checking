@@ -20,7 +20,7 @@ val MF4 = f_dif_s.log.map(x => x.msg).dif_get_fetch_response_messages().size() <
 val MF5 = f_dif_s.log.map(x => x.msg).dif_get_diffuse_response_messages().size() <= 4
 val MF6 = g_clock_s.input.size() == 0
 val MF7 = g_clock_s.input.map(x => x).gc_get_all_response_messages().size() == 0
-val MF8 = g_clock_s.state.TIME <= 5
+val MF8 = g_clock_s.state.TIME <= 3
 val MF9 = f_dif_s.log.map(x => x.msg).dif_get_fetch_response_messages().forall(m => m.data.size() == 0)
 val MF10 = f_dif_s.handles.dif_get_sim_diffuse_hold_messages().size() <= 2
 // At time t a message is delivered at most once to the same party

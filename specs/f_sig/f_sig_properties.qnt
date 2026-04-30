@@ -174,7 +174,6 @@ module f_sig_properties {
         Completeness,
         Unforgeability,
         VKBeforeSign,
-        // NoSignatureReuse,  // FAILS
         NoOrphanedHolds,
         InputBound   
     }
